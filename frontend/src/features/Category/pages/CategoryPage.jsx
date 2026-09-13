@@ -1,3 +1,91 @@
+import { PlusOutlined } from '@ant-design/icons'
+import { Alert, Button, Card, Space } from 'antd'
+import { useState } from 'react'
+import { CategoryList } from '../components/CategoryList.jsx'
+import { CategoryModal } from '../components/CategoryModal.jsx'
+import { useCategories } from '../hooks/useCategories.js'
+
 export function CategoryPage() {
-  return null
+  const [editingCategory, setEditingCategory] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const {
+    addCategory,
+    categories,
+    clearError,
+    editCategory,
+    error,
+    isLoading,
+    isMutating,
+    removeCategory,
+  } = useCategories()
+
+  function openCreateModal() {
+    clearError()
+    setEditingCategory(null)
+    setIsModalOpen(true)
+  }
+
+  function openEditModal(category) {
+    clearError()
+    setEditingCategory(category)
+    setIsModalOpen(true)
+  }
+
+  function closeModal() {
+    if (isMutating) return
+
+    setIsModalOpen(false)
+    setEditingCategory(null)
+  }
+
+  async function handleSubmit(categoryName) {
+    const category = editingCategory
+      ? await editCategory(editingCategory.category_id, categoryName)
+      : await addCategory(categoryName)
+
+    if (category) {
+      closeModal()
+    }
+
+    return category
+  }
+
+  return (
+    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      {error && (
+        <Alert
+          closable
+          message={error}
+          onClose={clearError}
+          showIcon
+          type="error"
+        />
+      )}
+
+      <Card
+        extra={(
+          <Button icon={<PlusOutlined />} onClick={openCreateModal} type="primary">
+            เพิ่มหมวดหมู่
+          </Button>
+        )}
+        title="หมวดหมู่หนังสือ"
+      >
+        <CategoryList
+          categories={categories}
+          isLoading={isLoading}
+          isMutating={isMutating}
+          onDelete={removeCategory}
+          onEdit={openEditModal}
+        />
+      </Card>
+
+      <CategoryModal
+        category={editingCategory}
+        isOpen={isModalOpen}
+        isSubmitting={isMutating}
+        onCancel={closeModal}
+        onSubmit={handleSubmit}
+      />
+    </Space>
+  )
 }
