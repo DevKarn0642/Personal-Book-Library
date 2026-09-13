@@ -20,3 +20,26 @@ export async function login({ identifier, password }) {
 
   return body
 }
+
+export async function getCurrentUser() {
+  const response = await apiRequest('/api/auth/me')
+
+  if (response.status === 401) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error('ไม่สามารถตรวจสอบสถานะการเข้าสู่ระบบได้')
+  }
+
+  const body = await response.json()
+  return body.user
+}
+
+export async function logout() {
+  const response = await apiRequest('/api/auth/logout', { method: 'POST' })
+
+  if (!response.ok) {
+    throw new Error('ไม่สามารถออกจากระบบได้')
+  }
+}

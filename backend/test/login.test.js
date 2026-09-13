@@ -101,3 +101,41 @@ test('requires a strong configured secret', () => {
     assert.throws(() => createApp({ pool: {}, jwtSecret }), /JWT_SECRET/);
   }
 });
+
+test('restores an authenticated session from the access-token cookie', async (t) => {
+  const user = { user_id: '55', user_name: 'Reader', user_email: 'reader@example.com',
+    user_pass: await bcrypt.hash('correct-password', 12) };
+  const pool = { async query(sql, params) {
+    if (/user_email = \$1/.test(sql)) {
+      return { rows: params[0] === user.user_email ? [user] : [] };
+    }
+    if (/user_id = \$1/.test(sql)) {
+      return { rows: params[0] === user.user_id ? [user] : [] };
+    }
+    throw new Error(`Unexpected query: ${sql}`);
+  } };
+  const server = createApp({ pool, jwtSecret }).listen(0, '127.0.0.1');
+  await new Promise(resolve => server.once('listening', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const baseUrl = `http://127.0.0.1:${server.address().port}/api/auth`;
+
+  const login = await fetch(`${baseUrl}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: user.user_email, password: 'correct-password' }),
+  });
+  const cookie = login.headers.get('set-cookie').split(';')[0];
+
+  const me = await fetch(`${baseUrl}/me`, { headers: { Cookie: cookie } });
+  assert.equal(me.status, 200);
+  assert.deepEqual(await me.json(), {
+    user: { user_id: '55', user_name: 'Reader', user_email: 'reader@example.com' },
+  });
+
+  const anonymous = await fetch(`${baseUrl}/me`);
+  assert.equal(anonymous.status, 401);
+
+  const logout = await fetch(`${baseUrl}/logout`, { method: 'POST', headers: { Cookie: cookie } });
+  assert.equal(logout.status, 204);
+  assert.match(logout.headers.get('set-cookie'), /access_token=;/);
+});

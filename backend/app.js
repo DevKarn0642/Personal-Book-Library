@@ -6,11 +6,13 @@ const { createAuthController } = require('./src/controllers/authController');
 const { createAuthService } = require('./src/services/authService');
 const { createUserModel } = require('./src/models/userModel');
 const { errorHandler } = require('./src/middlewares/errorHandler');
+const { createRequireAuthentication } = require('./src/middlewares/requireAuthentication');
 
 function createApp({ pool, jwtSecret }) {
   const userModel = createUserModel({ pool });
   const authService = createAuthService({ userModel, jwtSecret });
   const authController = createAuthController({ authService });
+  const requireAuthentication = createRequireAuthentication({ jwtSecret });
 
   const app = express();
   app.use(helmet());
@@ -19,7 +21,7 @@ function createApp({ pool, jwtSecret }) {
     origin: process.env.FRONTEND_ORIGIN || ['http://localhost:5173', 'http://localhost:8080'],
   }));
   app.use(express.json({ limit: '16kb' }));
-  app.use('/api/auth', createAuthRouter({ authController }));
+  app.use('/api/auth', createAuthRouter({ authController, requireAuthentication }));
   app.use(errorHandler);
   return app;
 }

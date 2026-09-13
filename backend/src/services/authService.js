@@ -8,6 +8,14 @@ function createAuthService({ userModel, jwtSecret }) {
   // Compare a password even when the account is missing or ambiguous.
   const dummyHash = bcrypt.hashSync('unused-account-password', 12);
 
+  function toPublicUser(user) {
+    return {
+      user_id: user.user_id,
+      user_name: user.user_name,
+      user_email: user.user_email,
+    };
+  }
+
   async function login({ email, username, password }) {
     const users = email !== undefined
       ? await userModel.findByEmail(email)
@@ -24,11 +32,16 @@ function createAuthService({ userModel, jwtSecret }) {
     });
     return {
       accessToken, tokenType: 'Bearer', expiresIn: 3600,
-      user: { user_id: user.user_id, user_name: user.user_name, user_email: user.user_email },
+      user: toPublicUser(user),
     };
   }
 
-  return { login };
+  async function findUserById(userId) {
+    const user = await userModel.findById(userId);
+    return user ? toPublicUser(user) : null;
+  }
+
+  return { findUserById, login };
 }
 
 module.exports = { createAuthService };

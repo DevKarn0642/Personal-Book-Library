@@ -1,8 +1,44 @@
-import { ConfigProvider, Layout } from 'antd'
-import { LoginPage } from '../features/auth/pages/LoginPage.jsx'
-import { AuthLayout } from '../layouts/AuthLayout.jsx'
+import { useEffect, useState } from 'react'
+import { ConfigProvider, Flex, Layout, Spin } from 'antd'
+import { getCurrentUser, logout } from '../features/auth/services/authApi.js'
+import { AppRouter } from './router/AppRouter.jsx'
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function restoreSession() {
+      try {
+        const user = await getCurrentUser()
+        if (isMounted) {
+          setIsAuthenticated(Boolean(user))
+        }
+      } catch {
+        if (isMounted) {
+          setIsAuthenticated(false)
+        }
+      } finally {
+        if (isMounted) {
+          setIsCheckingSession(false)
+        }
+      }
+    }
+
+    restoreSession()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  async function handleSignOut() {
+    await logout()
+    setIsAuthenticated(false)
+  }
+
   return (
     <ConfigProvider
       theme={{
@@ -20,17 +56,19 @@ function App() {
         },
       }}
     >
-      <Layout
-        style={{
-          position: 'fixed',
-          inset: 0,
-          overflow: 'auto',
-        }}
-      >
-        <AuthLayout>
-          <LoginPage />
-        </AuthLayout>
-      </Layout>
+      {isCheckingSession ? (
+        <Layout style={{ minHeight: '100svh' }}>
+          <Flex align="center" justify="center" style={{ minHeight: '100svh' }}>
+            <Spin size="large" />
+          </Flex>
+        </Layout>
+      ) : (
+        <AppRouter
+          isAuthenticated={isAuthenticated}
+          onLoginSuccess={() => setIsAuthenticated(true)}
+          onSignOut={handleSignOut}
+        />
+      )}
     </ConfigProvider>
   )
 }

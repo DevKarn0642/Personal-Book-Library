@@ -4,11 +4,19 @@ import { useLogin } from '../hooks/useLogin.js'
 
 const { Title } = Typography
 
-export function LoginPage() {
+export function LoginPage({ onLoginSuccess }) {
   const screens = Grid.useBreakpoint()
   const { token } = theme.useToken()
   const { clearFeedback, data, error, isLoading, submitLogin } = useLogin()
   const isCompact = !screens.sm
+
+  async function handleSubmit(credentials) {
+    const result = await submitLogin(credentials)
+
+    if (result) {
+      onLoginSuccess?.(result)
+    }
+  }
 
   return (
     <Flex
@@ -45,7 +53,7 @@ export function LoginPage() {
           <Form
             layout="vertical"
             size="large"
-            onFinish={submitLogin}
+            onFinish={handleSubmit}
             onValuesChange={clearFeedback}
           >
             <Form.Item
