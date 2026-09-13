@@ -7,6 +7,17 @@ CREATE TABLE IF NOT EXISTS users (
     user_email VARCHAR(255) UNIQUE
 );
 
+-- Email: test@example.com | Username: testuser | Password: 123456
+INSERT INTO users (user_name, user_pass, user_email)
+VALUES (
+    'testuser',
+    '$2b$12$/9XTd1iw3tbbqNCesFfvt.vzjeDwhMXMS.vfyeGUgMXxk8vD6WTgK',
+    'test@example.com'
+)
+ON CONFLICT (user_email) DO UPDATE
+SET user_name = EXCLUDED.user_name,
+    user_pass = EXCLUDED.user_pass;
+
 
 -- 2. CATEGORY
 CREATE TABLE IF NOT EXISTS category (

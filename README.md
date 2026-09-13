@@ -6,3 +6,8 @@
 - Frontend: http://localhost:8080
 - Backend: http://localhost:3000 
 - PostgreSQL: localhost:5432, database `book_library`, user `bookuser`, password `123456`
+
+
+## API 
+Login
+- http://localhost:3000/api/auth/login
