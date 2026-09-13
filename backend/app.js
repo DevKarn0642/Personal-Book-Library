@@ -9,6 +9,10 @@ const { createCategoryRouter } = require('./src/routes/category');
 const { createCategoryController } = require('./src/controllers/categoryController');
 const { createCategoryService } = require('./src/services/categoryService');
 const { createCategoryModel } = require('./src/models/CategoryModel');
+const { createAuthorRouter } = require('./src/routes/author');
+const { createAuthorController } = require('./src/controllers/authorController');
+const { createAuthorService } = require('./src/services/authorService');
+const { createAuthorModel } = require('./src/models/AuthorModel');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 const { createRequireAuthentication } = require('./src/middlewares/requireAuthentication');
 
@@ -19,6 +23,9 @@ function createApp({ pool, jwtSecret }) {
   const categoryModel = createCategoryModel({ pool });
   const categoryService = createCategoryService({ categoryModel });
   const categoryController = createCategoryController({ categoryService });
+  const authorModel = createAuthorModel({ pool });
+  const authorService = createAuthorService({ authorModel });
+  const authorController = createAuthorController({ authorService });
   const requireAuthentication = createRequireAuthentication({ jwtSecret });
 
   const app = express();
@@ -30,6 +37,7 @@ function createApp({ pool, jwtSecret }) {
   app.use(express.json({ limit: '16kb' }));
   app.use('/api/auth', createAuthRouter({ authController, requireAuthentication }));
   app.use('/api/categories', createCategoryRouter({ categoryController, requireAuthentication }));
+  app.use('/api/authors', createAuthorRouter({ authorController, requireAuthentication }));
   app.use(errorHandler);
   return app;
 }
