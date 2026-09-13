@@ -5,12 +5,14 @@ import {
   PlusCircleOutlined,
   SettingOutlined,
   TagsOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { Layout } from 'antd'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AlertPage } from '../../features/Alert/pages/AlertPage.jsx'
 import { BookPage } from '../../features/Book/pages/BookPage.jsx'
 import { CategoryPage } from '../../features/Category/pages/CategoryPage.jsx'
+import { AuthorPage } from '../../features/author/pages/AuthorPage.jsx'
 import { HistoryPage } from '../../features/History/pages/HistoryPage.jsx'
 import { LibraryPage } from '../../features/Library/pages/LibraryPage.jsx'
 import { ShelfPage } from '../../features/Shelf/pages/ShelfPage.jsx'
@@ -28,6 +30,7 @@ const navigationItems = [
     label: 'ตั้งค่า',
     children: [
       { key: 'book-types', path: '/book-types/new', icon: <TagsOutlined />, label: 'เพิ่มประเภทหนังสือ' },
+      { key: 'authors', path: '/authors', icon: <UserOutlined />, label: 'ผู้เขียน' },
       { key: 'add-book', path: '/books/new', icon: <PlusCircleOutlined />, label: 'เพิ่มหนังสือ' },
       { key: 'shelves', path: '/shelves/new', icon: <DatabaseOutlined />, label: 'เพิ่มชั้นวางหนังสือ' },
     ],
@@ -89,6 +92,7 @@ function AppRoutes({ isAuthenticated, onLoginSuccess, onSignOut }) {
         <Route element={<LibraryPage />} path="/library" />
         <Route element={<AlertPage />} path="/notifications" />
         <Route element={<CategoryPage />} path="/book-types/new" />
+        <Route element={<AuthorPage />} path="/authors" />
         <Route element={<BookPage />} path="/books/new" />
         <Route element={<ShelfPage />} path="/shelves/new" />
         <Route element={<HistoryPage />} path="/history" />
