@@ -13,6 +13,10 @@ const { createAuthorRouter } = require('./src/routes/author');
 const { createAuthorController } = require('./src/controllers/authorController');
 const { createAuthorService } = require('./src/services/authorService');
 const { createAuthorModel } = require('./src/models/AuthorModel');
+const { createShelfRouter } = require('./src/routes/shelf');
+const { createShelfController } = require('./src/controllers/shelfController');
+const { createShelfService } = require('./src/services/shelfService');
+const { createShelfModel } = require('./src/models/ShelfModel');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 const { createRequireAuthentication } = require('./src/middlewares/requireAuthentication');
 
@@ -26,6 +30,9 @@ function createApp({ pool, jwtSecret }) {
   const authorModel = createAuthorModel({ pool });
   const authorService = createAuthorService({ authorModel });
   const authorController = createAuthorController({ authorService });
+  const shelfModel = createShelfModel({ pool });
+  const shelfService = createShelfService({ shelfModel });
+  const shelfController = createShelfController({ shelfService });
   const requireAuthentication = createRequireAuthentication({ jwtSecret });
 
   const app = express();
@@ -38,6 +45,7 @@ function createApp({ pool, jwtSecret }) {
   app.use('/api/auth', createAuthRouter({ authController, requireAuthentication }));
   app.use('/api/categories', createCategoryRouter({ categoryController, requireAuthentication }));
   app.use('/api/authors', createAuthorRouter({ authorController, requireAuthentication }));
+  app.use('/api/shelves', createShelfRouter({ shelfController, requireAuthentication }));
   app.use(errorHandler);
   return app;
 }
