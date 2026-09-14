@@ -29,7 +29,7 @@ const navigationItems = [
     icon: <SettingOutlined />,
     label: 'ตั้งค่า',
     children: [
-      { key: 'book-types', path: '/book-types/new', icon: <TagsOutlined />, label: 'เพิ่มประเภทหนังสือ' },
+      { key: 'categories', path: '/categories', icon: <TagsOutlined />, label: 'หมวดหมู่หนังสือ' },
       { key: 'authors', path: '/authors', icon: <UserOutlined />, label: 'ผู้เขียน' },
       { key: 'add-book', path: '/books/new', icon: <PlusCircleOutlined />, label: 'เพิ่มหนังสือ' },
       { key: 'shelves', path: '/shelves/new', icon: <DatabaseOutlined />, label: 'เพิ่มชั้นวางหนังสือ' },
@@ -91,7 +91,7 @@ function AppRoutes({ isAuthenticated, onLoginSuccess, onSignOut }) {
         <Route element={<Navigate replace to="/library" />} path="/" />
         <Route element={<LibraryPage />} path="/library" />
         <Route element={<AlertPage />} path="/notifications" />
-        <Route element={<CategoryPage />} path="/book-types/new" />
+        <Route element={<CategoryPage />} path="/categories" />
         <Route element={<AuthorPage />} path="/authors" />
         <Route element={<BookPage />} path="/books/new" />
         <Route element={<ShelfPage />} path="/shelves/new" />

@@ -21,10 +21,19 @@ const { createShelfFloorRouter } = require('./src/routes/shelfFloor');
 const { createShelfFloorController } = require('./src/controllers/shelfFloorController');
 const { createShelfFloorService } = require('./src/services/shelfFloorService');
 const { createShelfFloorModel } = require('./src/models/ShelfFloorModel');
+const { createAlertRouter } = require('./src/routes/alert');
+const { createAlertController } = require('./src/controllers/alertController');
+const { createAlertService } = require('./src/services/alertService');
+const { createAlertModel } = require('./src/models/AlertModel');
+const { createBookRouter } = require('./src/routes/book');
+const { createBookController } = require('./src/controllers/bookController');
+const { createBookService } = require('./src/services/bookService');
+const { createBookModel } = require('./src/models/BookModel');
+const { createBookFileUpload } = require('./src/middlewares/uploadBookFile');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 const { createRequireAuthentication } = require('./src/middlewares/requireAuthentication');
 
-function createApp({ pool, jwtSecret }) {
+function createApp({ pool, jwtSecret, bookCoverUploadDirectory, bookUploadDirectory }) {
   const userModel = createUserModel({ pool });
   const authService = createAuthService({ userModel, jwtSecret });
   const authController = createAuthController({ authService });
@@ -40,6 +49,13 @@ function createApp({ pool, jwtSecret }) {
   const shelfFloorModel = createShelfFloorModel({ pool });
   const shelfFloorService = createShelfFloorService({ shelfFloorModel });
   const shelfFloorController = createShelfFloorController({ shelfFloorService });
+  const alertModel = createAlertModel({ pool });
+  const alertService = createAlertService({ alertModel });
+  const alertController = createAlertController({ alertService });
+  const bookModel = createBookModel({ pool });
+  const bookService = createBookService({ bookModel });
+  const bookController = createBookController({ bookService });
+  const bookFileUpload = createBookFileUpload({ bookCoverUploadDirectory, bookUploadDirectory });
   const requireAuthentication = createRequireAuthentication({ jwtSecret });
 
   const app = express();
@@ -49,11 +65,15 @@ function createApp({ pool, jwtSecret }) {
     origin: process.env.FRONTEND_ORIGIN || ['http://localhost:5173', 'http://localhost:8080'],
   }));
   app.use(express.json({ limit: '16kb' }));
+  app.use('/uploads/books', requireAuthentication, express.static(bookFileUpload.bookUploadDirectory));
+  app.use('/uploads/covers', requireAuthentication, express.static(bookFileUpload.bookCoverUploadDirectory));
   app.use('/api/auth', createAuthRouter({ authController, requireAuthentication }));
   app.use('/api/categories', createCategoryRouter({ categoryController, requireAuthentication }));
   app.use('/api/authors', createAuthorRouter({ authorController, requireAuthentication }));
+  app.use('/api/books', createBookRouter({ bookController, bookFileUpload, requireAuthentication }));
   app.use('/api/shelves', createShelfRouter({ shelfController, requireAuthentication }));
   app.use('/api/shelves/:shelfId/floors', createShelfFloorRouter({ shelfFloorController, requireAuthentication }));
+  app.use('/api/alerts', createAlertRouter({ alertController, requireAuthentication }));
   app.use(errorHandler);
   return app;
 }

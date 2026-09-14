@@ -17,6 +17,7 @@ COPY --chown=node:node package.json package-lock.json ./
 
 COPY --chown=node:node app.js server.js ./
 COPY --chown=node:node src ./src
+RUN mkdir -p /app/uploads/books /app/uploads/covers && chown -R node:node /app/uploads
 
 USER node
 EXPOSE 3000

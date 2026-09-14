@@ -48,6 +48,8 @@ services:
       DB_PASSWORD: 123456
     ports:
       - "3000:3000"
+    volumes:
+      - book_uploads:/app/uploads
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -63,3 +65,4 @@ services:
 
 volumes:
   postgres_data:
+  book_uploads:

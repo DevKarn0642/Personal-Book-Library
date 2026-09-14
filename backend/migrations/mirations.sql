@@ -26,14 +26,7 @@ CREATE TABLE IF NOT EXISTS category (
 );
 
 
--- 3. BOOK TYPE
-CREATE TABLE IF NOT EXISTS book_type (
-    type_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    type_name VARCHAR(100) NOT NULL
-);
-
-
--- 4. AUTHOR
+-- 3. AUTHOR
 CREATE TABLE IF NOT EXISTS author (
     author_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     author_name VARCHAR(255) NOT NULL,
@@ -41,27 +34,23 @@ CREATE TABLE IF NOT EXISTS author (
 );
 
 
--- 5. BOOK
+-- 4. BOOK
 CREATE TABLE IF NOT EXISTS book (
     book_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     category_id BIGINT,
-    type_id BIGINT,
     author_id BIGINT,
 
+    book_type VARCHAR(10) NOT NULL DEFAULT 'physical',
     book_name VARCHAR(255) NOT NULL,
     book_date DATE,
     book_totalpage INTEGER,
     book_file TEXT,
+    book_cover_image TEXT,
 
     CONSTRAINT fk_book_category
         FOREIGN KEY (category_id)
         REFERENCES category(category_id)
-        ON DELETE SET NULL,
-
-    CONSTRAINT fk_book_type
-        FOREIGN KEY (type_id)
-        REFERENCES book_type(type_id)
         ON DELETE SET NULL,
 
     CONSTRAINT fk_book_author
@@ -70,11 +59,40 @@ CREATE TABLE IF NOT EXISTS book (
         ON DELETE SET NULL,
 
     CONSTRAINT chk_book_totalpage
-        CHECK (book_totalpage IS NULL OR book_totalpage >= 0)
+        CHECK (book_totalpage IS NULL OR book_totalpage >= 0),
+
+    CONSTRAINT chk_book_type
+        CHECK (book_type IN ('physical', 'file'))
 );
 
+-- Upgrade databases created with the former book_type lookup table.
+ALTER TABLE book DROP CONSTRAINT IF EXISTS fk_book_type;
+ALTER TABLE book DROP COLUMN IF EXISTS type_id;
+DROP TABLE IF EXISTS book_type;
+ALTER TABLE book ADD COLUMN IF NOT EXISTS book_type VARCHAR(10);
+ALTER TABLE book ADD COLUMN IF NOT EXISTS book_cover_image TEXT;
+UPDATE book
+SET book_type = CASE WHEN book_file IS NULL THEN 'physical' ELSE 'file' END
+WHERE book_type IS NULL OR book_type NOT IN ('physical', 'file');
+ALTER TABLE book ALTER COLUMN book_type SET DEFAULT 'physical';
+ALTER TABLE book ALTER COLUMN book_type SET NOT NULL;
 
--- 6. HISTORY
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'chk_book_type'
+          AND conrelid = 'book'::regclass
+    ) THEN
+        ALTER TABLE book
+            ADD CONSTRAINT chk_book_type
+            CHECK (book_type IN ('physical', 'file'));
+    END IF;
+END $$;
+
+
+-- 5. HISTORY
 CREATE TABLE IF NOT EXISTS history (
     history_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -100,7 +118,7 @@ CREATE TABLE IF NOT EXISTS history (
 );
 
 
--- 7. SHELF
+-- 6. SHELF
 CREATE TABLE IF NOT EXISTS shelf (
     shelf_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -114,7 +132,7 @@ CREATE TABLE IF NOT EXISTS shelf (
 );
 
 
--- 8. SHELF FLOOR
+-- 7. SHELF FLOOR
 CREATE TABLE IF NOT EXISTS shelf_floor (
     shelf_floor_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -151,7 +169,7 @@ CREATE TABLE IF NOT EXISTS shelf_floor (
 );
 
 
--- 9. ALERT
+-- 8. ALERT
 CREATE TABLE IF NOT EXISTS alert (
     alert_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
