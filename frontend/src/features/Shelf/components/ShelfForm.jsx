@@ -3,6 +3,19 @@ import { useEffect } from 'react'
 
 const MAX_SHELF_LIMIT = 2147483647
 
+function parseIntegerInput(value) {
+  return value?.replace(/[^\d]/g, '') || ''
+}
+
+function preventNonNumericKey(event) {
+  if (event.ctrlKey || event.metaKey || event.altKey || /^\d$/.test(event.key)) return
+
+  const allowedKeys = ['ArrowLeft', 'ArrowRight', 'Backspace', 'Delete', 'End', 'Home', 'Tab']
+  if (!allowedKeys.includes(event.key)) {
+    event.preventDefault()
+  }
+}
+
 export function ShelfForm({ shelf, isSubmitting, onCancel, onSubmit }) {
   const [form] = Form.useForm()
   const isEditing = Boolean(shelf)
@@ -74,6 +87,8 @@ export function ShelfForm({ shelf, isSubmitting, onCancel, onSubmit }) {
           disabled={isSubmitting}
           max={MAX_SHELF_LIMIT}
           min={0}
+          onKeyDown={preventNonNumericKey}
+          parser={parseIntegerInput}
           placeholder="ไม่บังคับ"
           precision={0}
           style={{ width: '100%' }}

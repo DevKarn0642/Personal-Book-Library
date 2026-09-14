@@ -6,7 +6,14 @@ function renderShelfLimit(shelfLimit) {
     : Number(shelfLimit).toLocaleString()
 }
 
-export function ShelfList({ shelves, isLoading, isMutating, onDelete, onEdit }) {
+export function ShelfList({
+  shelves,
+  isLoading,
+  isMutating,
+  onDelete,
+  onEdit,
+  onAddFloor,
+}) {
   const columns = [
     {
       title: 'ลำดับ',
@@ -41,9 +48,13 @@ export function ShelfList({ shelves, isLoading, isMutating, onDelete, onEdit }) 
       align: 'center',
       key: 'actions',
       title: 'จัดการ',
-      width: 190,
+      width: 290,
       render: (_, shelf) => (
         <Space align="center">
+          <Button disabled={isMutating} onClick={() => onAddFloor(shelf)} type="primary">
+            เพิ่มชั้นย่อย
+          </Button>
+
           <Button disabled={isMutating} onClick={() => onEdit(shelf)}>
             แก้ไข
           </Button>
@@ -73,7 +84,7 @@ export function ShelfList({ shelves, isLoading, isMutating, onDelete, onEdit }) 
       locale={{ emptyText: 'ยังไม่มีชั้นวางหนังสือ' }}
       pagination={{ pageSize: 10 }}
       rowKey="shelf_id"
-      scroll={{ x: 900 }}
+      scroll={{ x: 1000 }}
     />
   )
 }

@@ -112,6 +112,16 @@ export function useShelves() {
     setSuccessMessage(null)
   }
 
+  function replaceShelf(updatedShelf) {
+    setShelves((currentShelves) =>
+      currentShelves.map((shelf) =>
+        String(shelf.shelf_id) === String(updatedShelf.shelf_id)
+          ? updatedShelf
+          : shelf,
+      ),
+    )
+  }
+
   return {
     addShelf,
     clearError,
@@ -121,6 +131,7 @@ export function useShelves() {
     isLoading,
     isMutating,
     removeShelf,
+    replaceShelf,
     shelves,
     successMessage,
   }
