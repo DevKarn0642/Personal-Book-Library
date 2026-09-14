@@ -18,6 +18,7 @@ function createBookController({ bookService }) {
     try {
       const { page, pageSize, offset } = req.pagination;
       const { books, total } = await bookService.listBooks({
+        filters: req.bookFilters,
         limit: pageSize,
         offset,
       });

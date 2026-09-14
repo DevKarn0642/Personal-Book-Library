@@ -211,6 +211,40 @@ test('lists books with server-side pagination', async (t) => {
   assert.equal(anonymous.status, 401);
 });
 
+test('filters books by type, category, author, title, and shelf', async (t) => {
+  const queries = [];
+  const pool = {
+    async query(sql, params) {
+      queries.push({ sql, params });
+      if (sql.includes('COUNT(*) AS total')) return { rows: [{ total: '1' }] };
+      if (sql.includes('LIMIT $6 OFFSET $7')) {
+        return { rows: [{
+          book_id: '12', category_id: '3', author_id: '7', book_type: 'file',
+          book_name: 'The Filtered Book', book_date: null, book_totalpage: null,
+          book_file: '/uploads/books/filtered.pdf', book_cover_image: null,
+        }] };
+      }
+      throw new Error(`Unexpected query: ${sql}`);
+    },
+  };
+  const { baseUrl, headers } = await startServer(t, pool);
+
+  const response = await fetch(
+    `${baseUrl}?bookType=file&categoryId=3&authorId=7&search=filtered&shelfId=4`,
+    { headers },
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).pagination.total, 1);
+  const listQuery = queries.find(query => query.sql.includes('LIMIT $6 OFFSET $7'));
+  assert.match(listQuery.sql, /book_name ILIKE \$4/);
+  assert.match(listQuery.sql, /shelf_floor\.shelf_id = \$5/);
+  assert.deepEqual(listQuery.params, ['file', '3', '7', '%filtered%', '4', 10, 0]);
+
+  const invalid = await fetch(`${baseUrl}?bookType=audio`, { headers });
+  assert.equal(invalid.status, 400);
+});
+
 test('gets, updates, and deletes books with cover metadata', async (t) => {
   const pool = {
     async query(sql, params) {

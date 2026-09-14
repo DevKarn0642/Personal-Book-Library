@@ -1,6 +1,37 @@
 function createBookModel({ pool }) {
   const bookColumns = 'book_id, category_id, author_id, book_type, book_name, book_date, book_totalpage, book_file, book_cover_image';
 
+  function createFilterClause({ authorId, bookType, categoryId, search, shelfId } = {}) {
+    const clauses = [];
+    const values = [];
+
+    function addClause(sql, value) {
+      values.push(value);
+      clauses.push(sql.replace('?', `$${values.length}`));
+    }
+
+    if (bookType) addClause('book_type = ?', bookType);
+    if (categoryId) addClause('category_id = ?', categoryId);
+    if (authorId) addClause('author_id = ?', authorId);
+    if (search) addClause('book_name ILIKE ?', `%${search}%`);
+    if (shelfId) {
+      addClause(
+        `EXISTS (
+           SELECT 1
+           FROM shelf_floor
+           WHERE shelf_floor.book_id = book.book_id
+             AND shelf_floor.shelf_id = ?
+         )`,
+        shelfId,
+      );
+    }
+
+    return {
+      values,
+      whereClause: clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '',
+    };
+  }
+
   async function create({
     categoryId,
     authorId,
@@ -29,19 +60,29 @@ function createBookModel({ pool }) {
     return rows[0];
   }
 
-  async function findPage({ limit, offset }) {
+  async function findPage({ filters, limit, offset }) {
+    const { values, whereClause } = createFilterClause(filters);
+    const limitPosition = values.length + 1;
+    const offsetPosition = values.length + 2;
     const { rows } = await pool.query(
       `SELECT ${bookColumns}
        FROM book
+       ${whereClause}
        ORDER BY book_id ASC
-       LIMIT $1 OFFSET $2`,
-      [limit, offset],
+       LIMIT $${limitPosition} OFFSET $${offsetPosition}`,
+      [...values, limit, offset],
     );
     return rows;
   }
 
-  async function countAll() {
-    const { rows } = await pool.query('SELECT COUNT(*) AS total FROM book');
+  async function countAll(filters) {
+    const { values, whereClause } = createFilterClause(filters);
+    const { rows } = await pool.query(
+      `SELECT COUNT(*) AS total
+       FROM book
+       ${whereClause}`,
+      values,
+    );
     return rows[0].total;
   }
 

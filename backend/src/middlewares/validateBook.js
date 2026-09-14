@@ -152,7 +152,34 @@ function validateBookPagination(req, res, next) {
     return res.status(400).json({ message: 'Requested page is too large.' });
   }
 
+  const bookType = req.query.bookType;
+  if (bookType !== undefined && (typeof bookType !== 'string' || !BOOK_TYPES.has(bookType))) {
+    return res.status(400).json({ message: 'bookType must be physical or file.' });
+  }
+
+  const search = req.query.search;
+  if (search !== undefined &&
+      (typeof search !== 'string' || search.trim().length > 255)) {
+    return res.status(400).json({ message: 'search must be a string with at most 255 characters.' });
+  }
+
+  const categoryId = validateBigIntId(req.query.categoryId, 'Category ID');
+  if (categoryId.error) return res.status(400).json({ message: categoryId.error });
+
+  const authorId = validateBigIntId(req.query.authorId, 'Author ID');
+  if (authorId.error) return res.status(400).json({ message: authorId.error });
+
+  const shelfId = validateBigIntId(req.query.shelfId, 'Shelf ID');
+  if (shelfId.error) return res.status(400).json({ message: shelfId.error });
+
   req.pagination = { page, pageSize, offset };
+  req.bookFilters = {
+    authorId: authorId.value,
+    bookType: bookType || null,
+    categoryId: categoryId.value,
+    search: search?.trim() || null,
+    shelfId: shelfId.value,
+  };
   return next();
 }
 

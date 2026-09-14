@@ -3,10 +3,10 @@ function createBookService({ bookModel }) {
     return bookModel.create(bookInput);
   }
 
-  async function listBooks({ limit, offset }) {
+  async function listBooks({ filters, limit, offset }) {
     const [books, total] = await Promise.all([
-      bookModel.findPage({ limit, offset }),
-      bookModel.countAll(),
+      bookModel.findPage({ filters, limit, offset }),
+      bookModel.countAll(filters),
     ]);
 
     return { books, total: Number(total) };

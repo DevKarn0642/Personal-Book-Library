@@ -1,0 +1,133 @@
+.library-page {
+  display: grid;
+  gap: 24px;
+}
+
+.library-page__intro {
+  align-items: end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.library-page__intro .ant-typography {
+  margin-bottom: 0;
+}
+
+.library-page__intro .ant-typography-paragraph {
+  color: #666760;
+  margin-top: 8px;
+}
+
+.library-page__count {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e8e8e5;
+  border-radius: 999px;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 8px 13px;
+}
+
+.library-filters {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e8e8e5;
+  border-radius: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1.7fr) repeat(4, minmax(145px, 1fr)) auto;
+  padding: 16px;
+}
+
+.library-filters .ant-select,
+.library-filters__book-search {
+  min-width: 0;
+  width: 100%;
+}
+
+.library-book-grid .ant-list-item {
+  display: block;
+}
+
+.library-book-card {
+  height: 100%;
+  overflow: hidden;
+}
+
+.library-book-card .ant-card-body {
+  padding: 16px;
+}
+
+.library-book-card__cover {
+  background: #ecece8;
+  height: 264px;
+  overflow: hidden;
+}
+
+.library-book-card__cover .ant-image,
+.library-book-card__cover .ant-image-img {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.library-book-card__cover--empty {
+  align-items: center;
+  color: #8b8d83;
+  display: flex;
+  font-size: 48px;
+  justify-content: center;
+}
+
+.library-book-card__type {
+  margin-inline-end: 0;
+  width: fit-content;
+}
+
+.library-book-card__title.ant-typography {
+  margin: 0;
+  min-height: 44px;
+}
+
+.library-book-card__detail {
+  color: #6d6e68;
+  display: flex;
+  max-width: 100%;
+}
+
+.library-book-card__detail .ant-typography {
+  color: inherit;
+  min-width: 0;
+}
+
+.library-page__loading,
+.library-page__empty {
+  background: #fff;
+  border: 1px solid #e8e8e5;
+  border-radius: 16px;
+  min-height: 340px;
+}
+
+.library-page__empty {
+  margin: 0;
+  padding: 48px 20px;
+}
+
+@media (max-width: 1200px) {
+  .library-filters {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .library-page__intro {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .library-filters {
+    grid-template-columns: 1fr;
+  }
+}
