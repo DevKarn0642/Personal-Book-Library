@@ -191,3 +191,244 @@ CREATE TABLE IF NOT EXISTS alert (
         REFERENCES book(book_id)
         ON DELETE CASCADE
 );
+
+
+-- 9. DEMO DATA
+-- These inserts intentionally exclude history. Every statement can be run again
+-- without creating duplicate sample records.
+
+INSERT INTO category (category_name)
+SELECT seed.category_name
+FROM (
+    VALUES
+        ('นวนิยาย'),
+        ('พัฒนาตนเอง'),
+        ('เทคโนโลยี'),
+        ('ประวัติศาสตร์'),
+        ('วิทยาศาสตร์')
+) AS seed(category_name)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM category existing_category
+    WHERE existing_category.category_name = seed.category_name
+);
+
+INSERT INTO author (author_name, author_pen_name)
+SELECT seed.author_name, seed.author_pen_name
+FROM (
+    VALUES
+        ('J.K. Rowling', NULL),
+        ('Matt Haig', NULL),
+        ('James Clear', NULL),
+        ('Robert C. Martin', 'Uncle Bob'),
+        ('Yuval Noah Harari', NULL),
+        ('Stephen Hawking', NULL),
+        ('Marijn Haverbeke', NULL),
+        ('Jane Austen', NULL)
+) AS seed(author_name, author_pen_name)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM author existing_author
+    WHERE existing_author.author_name = seed.author_name
+);
+
+WITH seed_books (
+    category_name,
+    author_name,
+    book_type,
+    book_name,
+    book_date,
+    book_totalpage,
+    book_file,
+    book_cover_image
+) AS (
+    VALUES
+        (
+            'นวนิยาย',
+            'J.K. Rowling',
+            'physical',
+            'Harry Potter and the Philosopher''s Stone',
+            '1997-06-26',
+            223,
+            NULL,
+            'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=800&q=80'
+        ),
+        (
+            'นวนิยาย',
+            'Matt Haig',
+            'physical',
+            'The Midnight Library',
+            '2020-08-13',
+            304,
+            NULL,
+            'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80'
+        ),
+        (
+            'พัฒนาตนเอง',
+            'James Clear',
+            'physical',
+            'Atomic Habits',
+            '2018-10-16',
+            320,
+            NULL,
+            'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=800&q=80'
+        ),
+        (
+            'เทคโนโลยี',
+            'Robert C. Martin',
+            'physical',
+            'Clean Code',
+            '2008-08-01',
+            464,
+            NULL,
+            'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=800&q=80'
+        ),
+        (
+            'ประวัติศาสตร์',
+            'Yuval Noah Harari',
+            'physical',
+            'Sapiens',
+            '2011-01-01',
+            443,
+            NULL,
+            'https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?auto=format&fit=crop&w=800&q=80'
+        ),
+        (
+            'วิทยาศาสตร์',
+            'Stephen Hawking',
+            'physical',
+            'A Brief History of Time',
+            '1988-04-01',
+            256,
+            NULL,
+            'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80'
+        ),
+        (
+            'เทคโนโลยี',
+            'Marijn Haverbeke',
+            'file',
+            'Eloquent JavaScript',
+            '2018-12-04',
+            472,
+            'https://eloquentjavascript.net/Eloquent_JavaScript.pdf',
+            'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80'
+        ),
+        (
+            'นวนิยาย',
+            'Jane Austen',
+            'file',
+            'Pride and Prejudice',
+            '1813-01-28',
+            432,
+            'https://www.gutenberg.org/files/1342/1342-pdf.pdf',
+            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&w=800&q=80'
+        )
+)
+INSERT INTO book (
+    category_id,
+    author_id,
+    book_type,
+    book_name,
+    book_date,
+    book_totalpage,
+    book_file,
+    book_cover_image
+)
+SELECT
+    category.category_id,
+    author.author_id,
+    seed.book_type,
+    seed.book_name,
+    seed.book_date::DATE,
+    seed.book_totalpage,
+    seed.book_file,
+    seed.book_cover_image
+FROM seed_books seed
+JOIN category ON category.category_name = seed.category_name
+JOIN author ON author.author_name = seed.author_name
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM book existing_book
+    WHERE existing_book.book_name = seed.book_name
+);
+
+INSERT INTO shelf (shelf_name, shelf_limit, shelf_color, shelf_material)
+SELECT seed.shelf_name, seed.shelf_limit, seed.shelf_color, seed.shelf_material
+FROM (
+    VALUES
+        ('ชั้น A — นวนิยาย', 24, '#B7795B', 'ไม้โอ๊ก'),
+        ('ชั้น B — ความรู้', 30, '#4C7A9A', 'ไม้บีช'),
+        ('ชั้น C — ดิจิทัล', 12, '#6B7280', 'เหล็ก')
+) AS seed(shelf_name, shelf_limit, shelf_color, shelf_material)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM shelf existing_shelf
+    WHERE existing_shelf.shelf_name = seed.shelf_name
+);
+
+WITH seed_shelf_floors (
+    shelf_name,
+    shelf_floor_limit,
+    shelf_floor,
+    book_name,
+    category_name
+) AS (
+    VALUES
+        ('ชั้น A — นวนิยาย', 12, 1, 'Harry Potter and the Philosopher''s Stone', 'นวนิยาย'),
+        ('ชั้น A — นวนิยาย', 12, 2, 'The Midnight Library', 'นวนิยาย'),
+        ('ชั้น A — นวนิยาย', 12, 3, 'Pride and Prejudice', 'นวนิยาย'),
+        ('ชั้น B — ความรู้', 10, 1, 'Atomic Habits', 'พัฒนาตนเอง'),
+        ('ชั้น B — ความรู้', 10, 2, 'Sapiens', 'ประวัติศาสตร์'),
+        ('ชั้น B — ความรู้', 10, 3, 'A Brief History of Time', 'วิทยาศาสตร์'),
+        ('ชั้น B — ความรู้', 10, 4, 'Clean Code', 'เทคโนโลยี'),
+        ('ชั้น C — ดิจิทัล', 12, 1, 'Eloquent JavaScript', 'เทคโนโลยี')
+)
+INSERT INTO shelf_floor (
+    shelf_id,
+    shelf_floor_limit,
+    shelf_floor,
+    book_id,
+    category_id
+)
+SELECT
+    shelf.shelf_id,
+    seed.shelf_floor_limit,
+    seed.shelf_floor,
+    book.book_id,
+    category.category_id
+FROM seed_shelf_floors seed
+JOIN shelf ON shelf.shelf_name = seed.shelf_name
+JOIN book ON book.book_name = seed.book_name
+JOIN category ON category.category_name = seed.category_name
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM shelf_floor existing_floor
+    WHERE existing_floor.shelf_id = shelf.shelf_id
+      AND existing_floor.book_id = book.book_id
+);
+
+INSERT INTO alert (
+    alert_repeat_type,
+    alert_date,
+    alert_status,
+    alert_time,
+    user_id,
+    book_id
+)
+SELECT
+    'weekly',
+    '2026-12-31',
+    TRUE,
+    '19:00',
+    library_user.user_id,
+    book.book_id
+FROM users library_user
+JOIN book ON book.book_name = 'Atomic Habits'
+WHERE library_user.user_email = 'test@example.com'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM alert existing_alert
+      WHERE existing_alert.user_id = library_user.user_id
+        AND existing_alert.book_id = book.book_id
+        AND existing_alert.alert_repeat_type = 'weekly'
+  );
