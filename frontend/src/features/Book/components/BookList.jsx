@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../../../services/api.js'
 import { Button, Image, Popconfirm, Space, Table, Tag, Typography } from 'antd'
+import dayjs from 'dayjs'
 
 function createNameMap(items, idKey, nameForItem) {
   return new Map(items.map((item) => [String(item[idKey]), nameForItem(item)]))
@@ -7,6 +8,13 @@ function createNameMap(items, idKey, nameForItem) {
 
 function renderOptionalValue(value, fallback = '—') {
   return value === null || value === undefined || value === '' ? fallback : value
+}
+
+function renderDate(value) {
+  if (value === null || value === undefined || value === '') return renderOptionalValue(value)
+
+  const date = dayjs(value)
+  return date.isValid() ? date.format('DD/MM/YYYY') : renderOptionalValue(value)
 }
 
 function getBookFileUrl(bookFile) {
@@ -92,7 +100,7 @@ export function BookList({
       key: 'book_date',
       title: 'วันที่เผยแพร่',
       width: 135,
-      render: renderOptionalValue,
+      render: renderDate,
     },
     {
       dataIndex: 'book_totalpage',

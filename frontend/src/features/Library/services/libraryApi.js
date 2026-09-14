@@ -31,6 +31,12 @@ export async function listLibraryBooks({
   return readResponse(response, 'ไม่สามารถโหลดรายการหนังสือได้')
 }
 
+export async function getLibraryBook(bookId) {
+  const response = await apiRequest(`/api/books/${bookId}`)
+  const body = await readResponse(response, 'ไม่สามารถโหลดรายละเอียดหนังสือได้')
+  return body.book
+}
+
 export async function listLibraryReferenceData() {
   const [categoriesResponse, authorsResponse, shelvesResponse] = await Promise.all([
     apiRequest('/api/categories?page=1&pageSize=100'),

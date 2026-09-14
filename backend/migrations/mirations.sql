@@ -356,9 +356,9 @@ INSERT INTO shelf (shelf_name, shelf_limit, shelf_color, shelf_material)
 SELECT seed.shelf_name, seed.shelf_limit, seed.shelf_color, seed.shelf_material
 FROM (
     VALUES
-        ('ชั้น A — นวนิยาย', 24, '#B7795B', 'ไม้โอ๊ก'),
-        ('ชั้น B — ความรู้', 30, '#4C7A9A', 'ไม้บีช'),
-        ('ชั้น C — ดิจิทัล', 12, '#6B7280', 'เหล็ก')
+        ('ชั้น A', 24, 'สีน้ำเงิน', 'ไม้โอ๊ก'),
+        ('ชั้น B', 30, 'สีเขียว', 'ไม้บีช'),
+        ('ชั้น C', 12, 'สิม่วง', 'เหล็ก')
 ) AS seed(shelf_name, shelf_limit, shelf_color, shelf_material)
 WHERE NOT EXISTS (
     SELECT 1
@@ -374,14 +374,14 @@ WITH seed_shelf_floors (
     category_name
 ) AS (
     VALUES
-        ('ชั้น A — นวนิยาย', 12, 1, 'Harry Potter and the Philosopher''s Stone', 'นวนิยาย'),
-        ('ชั้น A — นวนิยาย', 12, 2, 'The Midnight Library', 'นวนิยาย'),
-        ('ชั้น A — นวนิยาย', 12, 3, 'Pride and Prejudice', 'นวนิยาย'),
-        ('ชั้น B — ความรู้', 10, 1, 'Atomic Habits', 'พัฒนาตนเอง'),
-        ('ชั้น B — ความรู้', 10, 2, 'Sapiens', 'ประวัติศาสตร์'),
-        ('ชั้น B — ความรู้', 10, 3, 'A Brief History of Time', 'วิทยาศาสตร์'),
-        ('ชั้น B — ความรู้', 10, 4, 'Clean Code', 'เทคโนโลยี'),
-        ('ชั้น C — ดิจิทัล', 12, 1, 'Eloquent JavaScript', 'เทคโนโลยี')
+        ('ชั้น A', 12, 1, 'Harry Potter and the Philosopher''s Stone', 'นวนิยาย'),
+        ('ชั้น A', 12, 2, 'The Midnight Library', 'นวนิยาย'),
+        ('ชั้น A', 12, 3, 'Pride and Prejudice', 'นวนิยาย'),
+        ('ชั้น B', 10, 1, 'Atomic Habits', 'พัฒนาตนเอง'),
+        ('ชั้น B', 10, 2, 'Sapiens', 'ประวัติศาสตร์'),
+        ('ชั้น B', 10, 3, 'A Brief History of Time', 'วิทยาศาสตร์'),
+        ('ชั้น B', 10, 4, 'Clean Code', 'เทคโนโลยี'),
+        ('ชั้น C', 12, 1, 'Eloquent JavaScript', 'เทคโนโลยี')
 )
 INSERT INTO shelf_floor (
     shelf_id,

@@ -1,7 +1,7 @@
 import { List } from 'antd'
 import { LibraryBookCard } from './LibraryBookCard.jsx'
 
-export function LibraryBookGrid({ authors, books, categories }) {
+export function LibraryBookGrid({ authors, books, categories, onSelectBook }) {
   const authorsById = new Map(authors.map((author) => [String(author.author_id), author]))
   const categoriesById = new Map(categories.map((category) => [String(category.category_id), category]))
 
@@ -16,6 +16,7 @@ export function LibraryBookGrid({ authors, books, categories }) {
             authorsById={authorsById}
             book={book}
             categoriesById={categoriesById}
+            onSelect={onSelectBook}
           />
         </List.Item>
       )}

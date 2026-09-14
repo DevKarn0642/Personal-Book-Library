@@ -2,6 +2,7 @@ import { BookOutlined } from '@ant-design/icons'
 import { Alert, Button, Empty, Flex, Pagination, Spin, Typography } from 'antd'
 import { useState } from 'react'
 import { LibraryBookGrid } from '../components/LibraryBookGrid.jsx'
+import { LibraryBookDetailModal } from '../components/LibraryBookDetailModal.jsx'
 import { LibraryFilters } from '../components/LibraryFilters.jsx'
 import { useLibraryBooks } from '../hooks/useLibraryBooks.js'
 import './LibraryPage.css'
@@ -12,17 +13,24 @@ export function LibraryPage() {
     authors,
     books,
     categories,
+    closeBookDetails,
     clearError,
+    detailError,
     error,
     filters,
     isLoading,
+    isDetailLoading,
+    isDetailOpen,
     isReferenceDataLoading,
     page,
     pagination,
+    openBookDetails,
     reload,
     resetFilters,
     setPage,
     shelves,
+    selectedBook,
+    selectedBookId,
     updateFilter,
   } = useLibraryBooks()
 
@@ -86,7 +94,12 @@ export function LibraryPage() {
         </Flex>
       ) : books.length > 0 ? (
         <>
-          <LibraryBookGrid authors={authors} books={books} categories={categories} />
+          <LibraryBookGrid
+            authors={authors}
+            books={books}
+            categories={categories}
+            onSelectBook={(book) => openBookDetails(book.book_id)}
+          />
           {pagination.totalPages > 1 && (
             <Flex justify="center" style={{ marginTop: 28 }}>
               <Pagination
@@ -106,6 +119,17 @@ export function LibraryPage() {
           description={hasActiveFilters ? 'ไม่พบหนังสือตามตัวกรองที่เลือก' : 'ยังไม่มีหนังสือในคลัง'}
         />
       )}
+
+      <LibraryBookDetailModal
+        authors={authors}
+        book={selectedBook}
+        categories={categories}
+        error={detailError}
+        isLoading={isDetailLoading}
+        onClose={closeBookDetails}
+        onRetry={() => openBookDetails(selectedBookId)}
+        open={isDetailOpen}
+      />
     </section>
   )
 }

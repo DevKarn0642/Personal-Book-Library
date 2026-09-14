@@ -88,9 +88,24 @@ function createBookModel({ pool }) {
 
   async function findById(bookId) {
     const { rows } = await pool.query(
-      `SELECT ${bookColumns}
+      `SELECT ${bookColumns},
+              COALESCE(shelf_location.shelf_locations, '[]'::json) AS shelf_locations
        FROM book
-       WHERE book_id = $1
+       LEFT JOIN LATERAL (
+         SELECT JSON_AGG(
+           JSON_BUILD_OBJECT(
+             'shelf_id', shelf.shelf_id,
+             'shelf_name', shelf.shelf_name,
+             'shelf_floor_id', shelf_floor.shelf_floor_id,
+             'shelf_floor', shelf_floor.shelf_floor
+           )
+           ORDER BY shelf.shelf_name ASC, shelf_floor.shelf_floor ASC
+         ) AS shelf_locations
+         FROM shelf_floor
+         JOIN shelf ON shelf.shelf_id = shelf_floor.shelf_id
+         WHERE shelf_floor.book_id = book.book_id
+       ) AS shelf_location ON TRUE
+       WHERE book.book_id = $1
        LIMIT 1`,
       [bookId],
     );

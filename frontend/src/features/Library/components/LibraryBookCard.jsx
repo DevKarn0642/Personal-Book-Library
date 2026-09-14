@@ -20,18 +20,26 @@ function getAuthorName(book, authorsById) {
     : author.author_name
 }
 
-export function LibraryBookCard({ authorsById, book, categoriesById }) {
+export function LibraryBookCard({ authorsById, book, categoriesById, onSelect }) {
   const categoryName = categoriesById.get(String(book.category_id))?.category_name || 'ไม่ระบุหมวดหมู่'
   const isDigitalBook = book.book_type === 'file'
 
+  function handleKeyDown(event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onSelect(book)
+    }
+  }
+
   return (
     <Card
+      aria-label={`ดูรายละเอียด ${book.book_name}`}
       className="library-book-card"
       cover={book.book_cover_image ? (
         <div className="library-book-card__cover">
           <Image
             alt={`หน้าปก ${book.book_name}`}
-            preview
+            preview={false}
             src={getCoverUrl(book.book_cover_image)}
             style={{ height: 264, objectFit: 'cover', width: '100%' }}
           />
@@ -42,6 +50,10 @@ export function LibraryBookCard({ authorsById, book, categoriesById }) {
         </div>
       )}
       hoverable
+      onClick={() => onSelect(book)}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
     >
       <Space direction="vertical" size={10} style={{ width: '100%' }}>
         <Tag className="library-book-card__type" color={isDigitalBook ? 'blue' : 'default'}>

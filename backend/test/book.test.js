@@ -253,6 +253,10 @@ test('gets, updates, and deletes books with cover metadata', async (t) => {
           book_id: params[0], category_id: null, author_id: null, book_type: 'physical',
           book_name: 'Found', book_date: null, book_totalpage: null,
           book_file: null, book_cover_image: null,
+          shelf_locations: [{
+            shelf_id: '4', shelf_name: 'ชั้น B — ความรู้',
+            shelf_floor_id: '8', shelf_floor: 2,
+          }],
         }] };
       }
       if (sql.includes('UPDATE book')) {
@@ -270,7 +274,12 @@ test('gets, updates, and deletes books with cover metadata', async (t) => {
 
   const found = await fetch(`${baseUrl}/21`, { headers });
   assert.equal(found.status, 200);
-  assert.equal((await found.json()).book.book_id, '21');
+  const foundBody = await found.json();
+  assert.equal(foundBody.book.book_id, '21');
+  assert.deepEqual(foundBody.book.shelf_locations, [{
+    shelf_id: '4', shelf_name: 'ชั้น B — ความรู้',
+    shelf_floor_id: '8', shelf_floor: 2,
+  }]);
 
   const updated = await fetch(`${baseUrl}/21`, {
     method: 'PUT',

@@ -1,7 +1,15 @@
 import { Button, Popconfirm, Space, Table, Tag } from 'antd'
+import dayjs from 'dayjs'
 
 function renderValue(value, fallback = '—') {
   return value === null || value === undefined || value === '' ? fallback : value
+}
+
+function renderDate(value) {
+  if (value === null || value === undefined || value === '') return renderValue(value)
+
+  const date = dayjs(value)
+  return date.isValid() ? date.format('DD/MM/YYYY') : renderValue(value)
 }
 
 export function AlertList({
@@ -19,7 +27,7 @@ export function AlertList({
       dataIndex: 'alert_date',
       key: 'alert_date',
       width: 130,
-      render: (alertDate) => renderValue(alertDate),
+      render: renderDate,
     },
     {
       title: 'เวลา',

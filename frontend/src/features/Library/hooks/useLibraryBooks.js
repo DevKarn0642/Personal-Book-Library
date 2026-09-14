@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { listLibraryBooks, listLibraryReferenceData } from '../services/libraryApi.js'
+import { useEffect, useRef, useState } from 'react'
+import { getLibraryBook, listLibraryBooks, listLibraryReferenceData } from '../services/libraryApi.js'
 
 const INITIAL_FILTERS = {
   authorId: undefined,
@@ -19,14 +19,20 @@ export function useLibraryBooks() {
   const [books, setBooks] = useState([])
   const [categories, setCategories] = useState([])
   const [bookError, setBookError] = useState(null)
+  const [detailError, setDetailError] = useState(null)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [isLoading, setIsLoading] = useState(true)
+  const [isDetailLoading, setIsDetailLoading] = useState(false)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isReferenceDataLoading, setIsReferenceDataLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, pageSize: PAGE_SIZE, total: 0, totalPages: 0 })
   const [refreshKey, setRefreshKey] = useState(0)
   const [referenceError, setReferenceError] = useState(null)
   const [shelves, setShelves] = useState([])
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [selectedBookId, setSelectedBookId] = useState(null)
+  const detailRequestId = useRef(0)
 
   useEffect(() => {
     let isCurrent = true
@@ -91,24 +97,55 @@ export function useLibraryBooks() {
     setRefreshKey((currentKey) => currentKey + 1)
   }
 
+  async function openBookDetails(bookId) {
+    const requestId = detailRequestId.current + 1
+    detailRequestId.current = requestId
+    setDetailError(null)
+    setIsDetailLoading(true)
+    setIsDetailOpen(true)
+    setSelectedBook(null)
+    setSelectedBookId(bookId)
+
+    try {
+      const book = await getLibraryBook(bookId)
+      if (detailRequestId.current === requestId) setSelectedBook(book)
+    } catch (requestError) {
+      if (detailRequestId.current === requestId) setDetailError(getErrorMessage(requestError))
+    } finally {
+      if (detailRequestId.current === requestId) setIsDetailLoading(false)
+    }
+  }
+
+  function closeBookDetails() {
+    detailRequestId.current += 1
+    setIsDetailOpen(false)
+  }
+
   return {
     authors,
     books,
     categories,
+    closeBookDetails,
     clearError: () => {
       setBookError(null)
       setReferenceError(null)
     },
+    detailError,
     error: bookError || referenceError,
     filters,
+    isDetailLoading,
+    isDetailOpen,
     isLoading,
     isReferenceDataLoading,
     page,
     pagination,
+    openBookDetails,
     reload,
     resetFilters,
     setPage,
     shelves,
+    selectedBook,
+    selectedBookId,
     updateFilter,
   }
 }
