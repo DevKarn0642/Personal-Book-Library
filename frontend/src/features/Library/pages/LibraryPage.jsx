@@ -1,6 +1,7 @@
 import { BookOutlined } from '@ant-design/icons'
-import { Alert, Button, Empty, Flex, Pagination, Spin, Typography } from 'antd'
+import { Button, Empty, Flex, Pagination, Space, Spin, Typography } from 'antd'
 import { useState } from 'react'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 import { LibraryBookGrid } from '../components/LibraryBookGrid.jsx'
 import { LibraryBookDetailModal } from '../components/LibraryBookDetailModal.jsx'
 import { LibraryFilters } from '../components/LibraryFilters.jsx'
@@ -33,6 +34,26 @@ export function LibraryPage() {
     selectedBookId,
     updateFilter,
   } = useLibraryBooks()
+
+  useFeedbackMessage({
+    error,
+    errorContent: (errorMessage, dismiss) => (
+      <Space size={8}>
+        <span>{errorMessage}</span>
+        <Button
+          onClick={() => {
+            dismiss()
+            reload()
+          }}
+          size="small"
+          type="link"
+        >
+          ลองใหม่
+        </Button>
+      </Space>
+    ),
+    onErrorShown: clearError,
+  })
 
   function handleBookNameSearch(value) {
     const trimmedValue = value.trim()
@@ -78,17 +99,6 @@ export function LibraryPage() {
         onUpdateFilter={updateFilter}
         shelves={shelves}
       />
-
-      {error && (
-        <Alert
-          action={<Button onClick={reload} size="small">ลองใหม่</Button>}
-          closable
-          message={error}
-          onClose={clearError}
-          showIcon
-          type="error"
-        />
-      )}
 
       {isLoading ? (
         <Flex align="center" className="library-page__loading" justify="center">

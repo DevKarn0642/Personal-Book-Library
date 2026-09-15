@@ -15,6 +15,10 @@ function createAlertService({ alertModel }) {
     return alertModel.findBookOptions();
   }
 
+  async function listActiveAlerts(userId) {
+    return alertModel.findActiveForUser(userId);
+  }
+
   async function getAlertById(alertId, userId) {
     return alertModel.findById(alertId, userId);
   }
@@ -31,6 +35,7 @@ function createAlertService({ alertModel }) {
     createAlert,
     deleteAlert,
     getAlertById,
+    listActiveAlerts,
     listAlertBookOptions,
     listAlerts,
     updateAlert,

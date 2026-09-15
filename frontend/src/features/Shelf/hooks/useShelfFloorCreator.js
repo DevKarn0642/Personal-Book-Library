@@ -3,6 +3,7 @@ import { updateShelf } from '../services/shelfApi.js'
 import {
   createShelfFloor,
   deleteShelfFloor,
+  listShelfFloorCategories,
   listShelfFloors,
   updateShelfFloor,
 } from '../services/shelfFloorApi.js'
@@ -14,6 +15,7 @@ function getErrorMessage(error) {
 }
 
 export function useShelfFloorCreator() {
+  const [categories, setCategories] = useState([])
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -24,7 +26,12 @@ export function useShelfFloorCreator() {
     setError(null)
 
     try {
-      return await listShelfFloors(shelfId)
+      const [shelfFloors, loadedCategories] = await Promise.all([
+        listShelfFloors(shelfId),
+        listShelfFloorCategories(),
+      ])
+      setCategories(loadedCategories)
+      return shelfFloors
     } catch (requestError) {
       setError(getErrorMessage(requestError))
       return null
@@ -68,9 +75,9 @@ export function useShelfFloorCreator() {
       )
       const submittedExistingFloorIds = new Set()
 
-      for (const { shelfFloorId, shelfFloor, shelfFloorLimit } of floors) {
+      for (const { categoryId, shelfFloorId, shelfFloor, shelfFloorLimit } of floors) {
         if (!shelfFloorId) {
-          await createShelfFloor(shelf.shelf_id, shelfFloor, shelfFloorLimit)
+          await createShelfFloor(shelf.shelf_id, shelfFloor, shelfFloorLimit, categoryId)
           continue
         }
 
@@ -85,8 +92,7 @@ export function useShelfFloorCreator() {
           shelfFloorId,
           shelfFloor,
           shelfFloorLimit,
-          existingShelfFloor.book_id,
-          existingShelfFloor.category_id,
+          categoryId ?? null,
         )
       }
 
@@ -122,6 +128,7 @@ export function useShelfFloorCreator() {
   }
 
   return {
+    categories,
     clearError,
     clearSuccessMessage,
     error,

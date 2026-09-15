@@ -1,10 +1,11 @@
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
-import { Alert, Button, Flex, Grid, InputNumber, Space, Spin, Typography } from 'antd'
+import { Button, Flex, Grid, InputNumber, Space, Spin, Typography } from 'antd'
 import { useMemo, useState } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 import { API_BASE_URL } from '../../../services/api.js'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 import { usePdfReadingHistory } from '../hooks/usePdfReadingHistory.js'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -38,6 +39,28 @@ export function PdfReader({ book }) {
     savePage,
     setCurrentPage,
   } = usePdfReadingHistory({ bookId: book?.book_id, isOpen: Boolean(book) })
+
+  useFeedbackMessage({
+    error: loadError,
+    errorContent: (errorMessage, dismiss) => (
+      <Space size={8}>
+        <span>{errorMessage}</span>
+        <Button
+          onClick={() => {
+            dismiss()
+            void loadProgress()
+          }}
+          size="small"
+          type="link"
+        >
+          ลองใหม่
+        </Button>
+      </Space>
+    ),
+  })
+  useFeedbackMessage({ error: saveError })
+  useFeedbackMessage({ error: pdfError })
+
   const documentOptions = useMemo(() => ({
     cMapPacked: true,
     cMapUrl: '/cmaps/',
@@ -53,6 +76,7 @@ export function PdfReader({ book }) {
 
   function handleDocumentLoadSuccess(pdf) {
     setNumPages(pdf.numPages)
+    setPdfError(null)
     const restoredPage = Math.min(Math.max(currentPage, 1), pdf.numPages)
     if (restoredPage !== currentPage) setCurrentPage(restoredPage)
     void savePage(restoredPage)
@@ -66,16 +90,6 @@ export function PdfReader({ book }) {
           </Flex>
         ) : (
           <>
-            {loadError && (
-              <Alert
-                action={<Button onClick={() => void loadProgress()} size="small">ลองใหม่</Button>}
-                message={loadError}
-                showIcon
-                type="warning"
-              />
-            )}
-            {saveError && <Alert message={saveError} showIcon type="warning" />}
-
             <Flex align="center" className="pdf-reader__toolbar" gap={12} justify="flex-end" wrap>
               <Space size={8}>
                 <Typography.Text>หน้า</Typography.Text>
@@ -105,7 +119,7 @@ export function PdfReader({ book }) {
 
               <div className="pdf-reader__document">
                 <Document
-                  error={<Alert message={pdfError || 'ไม่สามารถเปิดไฟล์ PDF ได้'} showIcon type="error" />}
+                  error={<Typography.Text type="danger">{pdfError || 'ไม่สามารถเปิดไฟล์ PDF ได้'}</Typography.Text>}
                   file={book ? getFileUrl(book.book_file) : undefined}
                   loading={<Flex align="center" className="pdf-reader__loading" justify="center"><Spin /></Flex>}
                   onLoadError={(error) => setPdfError(getErrorMessage(error))}

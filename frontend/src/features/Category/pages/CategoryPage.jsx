@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Alert, Button, Card, Space } from 'antd'
+import { Button, Card, Space } from 'antd'
 import { useState } from 'react'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 import { CategoryList } from '../components/CategoryList.jsx'
 import { CategoryModal } from '../components/CategoryModal.jsx'
 import { useCategories } from '../hooks/useCategories.js'
@@ -18,6 +19,8 @@ export function CategoryPage() {
     isMutating,
     removeCategory,
   } = useCategories()
+
+  useFeedbackMessage({ error, onErrorShown: clearError })
 
   function openCreateModal() {
     clearError()
@@ -52,16 +55,6 @@ export function CategoryPage() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      {error && (
-        <Alert
-          closable
-          message={error}
-          onClose={clearError}
-          showIcon
-          type="error"
-        />
-      )}
-
       <Card
         extra={(
           <Button icon={<PlusOutlined />} onClick={openCreateModal} type="primary">

@@ -38,6 +38,15 @@ function createAlertController({ alertService }) {
     }
   }
 
+  async function listActive(req, res, next) {
+    try {
+      const alerts = await alertService.listActiveAlerts(req.auth.userId);
+      return res.json({ alerts });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async function getById(req, res, next) {
     try {
       const alert = await alertService.getAlertById(req.alertId, req.auth.userId);
@@ -74,7 +83,7 @@ function createAlertController({ alertService }) {
     }
   }
 
-  return { create, getById, list, listBookOptions, remove, update };
+  return { create, getById, list, listActive, listBookOptions, remove, update };
 }
 
 module.exports = { createAlertController };

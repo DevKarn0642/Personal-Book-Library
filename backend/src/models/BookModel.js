@@ -18,8 +18,9 @@ function createBookModel({ pool }) {
       addClause(
         `EXISTS (
            SELECT 1
-           FROM shelf_floor
-           WHERE shelf_floor.book_id = book.book_id
+           FROM shelf_floor_book
+           JOIN shelf_floor ON shelf_floor.shelf_floor_id = shelf_floor_book.shelf_floor_id
+           WHERE shelf_floor_book.book_id = book.book_id
              AND shelf_floor.shelf_id = ?
          )`,
         shelfId,
@@ -102,8 +103,9 @@ function createBookModel({ pool }) {
            ORDER BY shelf.shelf_name ASC, shelf_floor.shelf_floor ASC
          ) AS shelf_locations
          FROM shelf_floor
+         JOIN shelf_floor_book ON shelf_floor_book.shelf_floor_id = shelf_floor.shelf_floor_id
          JOIN shelf ON shelf.shelf_id = shelf_floor.shelf_id
-         WHERE shelf_floor.book_id = book.book_id
+         WHERE shelf_floor_book.book_id = book.book_id
        ) AS shelf_location ON TRUE
        WHERE book.book_id = $1
        LIMIT 1`,

@@ -6,9 +6,10 @@ import {
   TagsOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Alert, Button, Descriptions, Image, Modal, Space, Spin, Tag, Typography } from 'antd'
+import { Button, Descriptions, Image, Modal, Space, Spin, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
 import { API_BASE_URL } from '../../../services/api.js'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 
 function getFileUrl(filePath) {
   return /^https?:\/\//i.test(filePath) ? filePath : `${API_BASE_URL}${filePath}`
@@ -58,6 +59,25 @@ export function LibraryBookDetailModal({
   const categoryName = book ? categoriesById.get(String(book.category_id))?.category_name || 'ไม่ระบุหมวดหมู่' : ''
   const shelfLocations = book ? getShelfLocations(book) : []
 
+  useFeedbackMessage({
+    error,
+    errorContent: (errorMessage, dismiss) => (
+      <Space size={8}>
+        <span>{errorMessage}</span>
+        <Button
+          onClick={() => {
+            dismiss()
+            onRetry()
+          }}
+          size="small"
+          type="link"
+        >
+          ลองใหม่
+        </Button>
+      </Space>
+    ),
+  })
+
   return (
     <Modal
       destroyOnHidden
@@ -69,8 +89,6 @@ export function LibraryBookDetailModal({
     >
       {isLoading ? (
         <div className="library-book-detail__loading"><Spin size="large" /></div>
-      ) : error ? (
-        <Alert action={<Typography.Link onClick={onRetry}>ลองใหม่</Typography.Link>} message={error} showIcon type="error" />
       ) : book && (
         <div className="library-book-detail">
           <div className="library-book-detail__cover">

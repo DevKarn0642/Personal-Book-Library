@@ -10,6 +10,7 @@ function createAlertRouter({ alertController, requireAuthentication }) {
 
   router.post('/', requireAuthentication, validateAlert, alertController.create);
   router.get('/', requireAuthentication, validateAlertPagination, alertController.list);
+  router.get('/active', requireAuthentication, alertController.listActive);
   router.get('/books', requireAuthentication, alertController.listBookOptions);
   router.get('/:alertId', requireAuthentication, validateAlertId, alertController.getById);
   router.put(

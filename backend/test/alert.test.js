@@ -166,6 +166,51 @@ test('lists books for the alert book selector', async (t) => {
   assert.deepEqual(queries[0].params, undefined);
 });
 
+test('lists active alerts for only the authenticated user', async (t) => {
+  const queries = [];
+  const pool = {
+    async query(sql, params) {
+      queries.push({ sql, params });
+      if (sql.includes('alert.alert_status = TRUE')) {
+        return {
+          rows: [{
+            alert_id: '9',
+            alert_repeat_type: 'daily',
+            alert_date: '2026-10-03',
+            alert_status: true,
+            alert_time: '08:30:00',
+            user_id: params[0],
+            book_id: '12',
+            book_name: 'A Wizard of Earthsea',
+          }],
+        };
+      }
+      throw new Error(`Unexpected query: ${sql}`);
+    },
+  };
+  const { baseUrl, headers } = await startServer(t, pool, '7');
+
+  const response = await fetch(`${baseUrl}/active`, { headers });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    alerts: [{
+      alert_id: '9',
+      alert_repeat_type: 'daily',
+      alert_date: '2026-10-03',
+      alert_status: true,
+      alert_time: '08:30:00',
+      user_id: '7',
+      book_id: '12',
+      book_name: 'A Wizard of Earthsea',
+    }],
+  });
+  assert.deepEqual(queries[0].params, ['7']);
+
+  const anonymous = await fetch(`${baseUrl}/active`);
+  assert.equal(anonymous.status, 401);
+  assert.equal(queries.length, 1);
+});
+
 test('gets, updates, and deletes an alert only when owned by the authenticated user', async (t) => {
   const queries = [];
   const pool = {

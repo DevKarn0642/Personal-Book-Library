@@ -1,6 +1,7 @@
-import { Alert, Button, Flex, Spin, Typography } from 'antd'
+import { Button, Flex, Space, Spin, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 import { PdfReader } from '../components/PdfReaderModal.jsx'
 import { getLibraryBook } from '../services/libraryApi.js'
 import './PdfReaderPage.css'
@@ -17,6 +18,28 @@ export function PdfReaderPage() {
   const [reloadKey, setReloadKey] = useState(0)
   const numericBookId = Number(bookId)
   const isValidBookId = Number.isInteger(numericBookId) && numericBookId > 0
+  const pageError = isValidBookId ? error : 'ไม่พบหนังสือที่ต้องการอ่าน'
+
+  useFeedbackMessage({
+    error: pageError,
+    errorContent: isValidBookId
+      ? (errorMessage, dismiss) => (
+        <Space size={8}>
+          <span>{errorMessage}</span>
+          <Button
+            onClick={() => {
+              dismiss()
+              setReloadKey((value) => value + 1)
+            }}
+            size="small"
+            type="link"
+          >
+            ลองใหม่
+          </Button>
+        </Space>
+      )
+      : undefined,
+  })
 
   useEffect(() => {
     if (!isValidBookId) return undefined
@@ -42,15 +65,13 @@ export function PdfReaderPage() {
   }, [isValidBookId, numericBookId, reloadKey])
 
   if (!isValidBookId) {
-    return <main className="pdf-reader-page"><Alert message="ไม่พบหนังสือที่ต้องการอ่าน" showIcon type="error" /></main>
+    return <main className="pdf-reader-page" />
   }
 
   return (
     <main className="pdf-reader-page">
       {isLoading ? (
         <Flex align="center" className="pdf-reader-page__loading" justify="center"><Spin size="large" /></Flex>
-      ) : error ? (
-        <Alert action={<Button onClick={() => setReloadKey((value) => value + 1)} size="small">ลองใหม่</Button>} message={error} showIcon type="error" />
       ) : book ? (
         <>
           <Typography.Title className="pdf-reader-page__title" level={3}>อ่าน: {book.book_name}</Typography.Title>

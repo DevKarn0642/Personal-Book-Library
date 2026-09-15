@@ -1,5 +1,5 @@
 function createShelfFloorModel({ pool }) {
-  const floorColumns = 'shelf_floor_id, shelf_id, shelf_floor_limit, shelf_floor, book_id, category_id';
+  const floorColumns = 'shelf_floor_id, shelf_id, shelf_floor_limit, shelf_floor, category_id';
 
   async function findShelfById(shelfId) {
     const { rows } = await pool.query(
@@ -12,18 +12,17 @@ function createShelfFloorModel({ pool }) {
     return rows[0];
   }
 
-  async function create({ shelfId, shelfFloorLimit, shelfFloor, bookId, categoryId }) {
+  async function create({ shelfId, shelfFloorLimit, shelfFloor, categoryId }) {
     const { rows } = await pool.query(
       `INSERT INTO shelf_floor (
          shelf_id,
          shelf_floor_limit,
          shelf_floor,
-         book_id,
          category_id
        )
-       VALUES ($1, $2, $3, $4, $5)
+       VALUES ($1, $2, $3, $4)
        RETURNING ${floorColumns}`,
-      [shelfId, shelfFloorLimit, shelfFloor, bookId, categoryId],
+      [shelfId, shelfFloorLimit, shelfFloor, categoryId],
     );
     return rows[0];
   }
@@ -64,18 +63,16 @@ function createShelfFloorModel({ pool }) {
   async function update(shelfId, shelfFloorId, {
     shelfFloorLimit,
     shelfFloor,
-    bookId,
     categoryId,
   }) {
     const { rows } = await pool.query(
       `UPDATE shelf_floor
        SET shelf_floor_limit = $1,
            shelf_floor = $2,
-           book_id = $3,
-           category_id = $4
-       WHERE shelf_id = $5 AND shelf_floor_id = $6
+           category_id = $3
+       WHERE shelf_id = $4 AND shelf_floor_id = $5
        RETURNING ${floorColumns}`,
-      [shelfFloorLimit, shelfFloor, bookId, categoryId, shelfId, shelfFloorId],
+      [shelfFloorLimit, shelfFloor, categoryId, shelfId, shelfFloorId],
     );
     return rows[0];
   }

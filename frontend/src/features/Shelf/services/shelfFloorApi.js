@@ -10,11 +10,10 @@ async function readResponse(response, fallbackMessage) {
   return body
 }
 
-function toShelfFloorPayload(shelfFloor, shelfFloorLimit, bookId, categoryId) {
+function toShelfFloorPayload(shelfFloor, shelfFloorLimit, categoryId) {
   return {
     shelf_floor: shelfFloor,
     shelf_floor_limit: shelfFloorLimit,
-    book_id: bookId,
     category_id: categoryId,
   }
 }
@@ -35,11 +34,27 @@ export async function listShelfFloors(shelfId) {
   return shelfFloors
 }
 
-export async function createShelfFloor(shelfId, shelfFloor, shelfFloorLimit) {
+export async function listShelfFloorCategories() {
+  const categories = []
+  let page = 1
+  let totalPages = 1
+
+  while (page <= totalPages) {
+    const response = await apiRequest(`/api/categories?page=${page}&pageSize=100`)
+    const body = await readResponse(response, 'ไม่สามารถโหลดประเภทหนังสือได้')
+    categories.push(...body.categories)
+    totalPages = body.pagination?.totalPages || 1
+    page += 1
+  }
+
+  return categories
+}
+
+export async function createShelfFloor(shelfId, shelfFloor, shelfFloorLimit, categoryId) {
   const response = await apiRequest(`/api/shelves/${shelfId}/floors`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(toShelfFloorPayload(shelfFloor, shelfFloorLimit, null, null)),
+    body: JSON.stringify(toShelfFloorPayload(shelfFloor, shelfFloorLimit, categoryId ?? null)),
   })
   const body = await readResponse(response, 'ไม่สามารถเพิ่มชั้นย่อยได้')
 
@@ -51,13 +66,12 @@ export async function updateShelfFloor(
   shelfFloorId,
   shelfFloor,
   shelfFloorLimit,
-  bookId,
   categoryId,
 ) {
   const response = await apiRequest(`/api/shelves/${shelfId}/floors/${shelfFloorId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(toShelfFloorPayload(shelfFloor, shelfFloorLimit, bookId, categoryId)),
+    body: JSON.stringify(toShelfFloorPayload(shelfFloor, shelfFloorLimit, categoryId)),
   })
   const body = await readResponse(response, 'ไม่สามารถแก้ไขชั้นย่อยได้')
 

@@ -20,7 +20,6 @@ function validateShelfFloor(req, res, next) {
   const {
     shelf_floor_limit: shelfFloorLimit,
     shelf_floor: shelfFloor,
-    book_id: bookId,
     category_id: categoryId,
   } = req.body || {};
 
@@ -37,11 +36,6 @@ function validateShelfFloor(req, res, next) {
     return res.status(400).json({ message: 'Shelf floor limit must be a whole number between 0 and 2147483647.' });
   }
 
-  const validatedBookId = validateBigIntId(bookId, 'Book ID');
-  if (validatedBookId.error) {
-    return res.status(400).json({ message: validatedBookId.error });
-  }
-
   const validatedCategoryId = validateBigIntId(categoryId, 'Category ID');
   if (validatedCategoryId.error) {
     return res.status(400).json({ message: validatedCategoryId.error });
@@ -51,7 +45,6 @@ function validateShelfFloor(req, res, next) {
     shelfId: req.shelfId,
     shelfFloorLimit: shelfFloorLimit ?? null,
     shelfFloor,
-    bookId: validatedBookId.value,
     categoryId: validatedCategoryId.value,
   };
   return next();

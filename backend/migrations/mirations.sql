@@ -65,32 +65,6 @@ CREATE TABLE IF NOT EXISTS book (
         CHECK (book_type IN ('physical', 'file'))
 );
 
--- Upgrade databases created with the former book_type lookup table.
-ALTER TABLE book DROP CONSTRAINT IF EXISTS fk_book_type;
-ALTER TABLE book DROP COLUMN IF EXISTS type_id;
-DROP TABLE IF EXISTS book_type;
-ALTER TABLE book ADD COLUMN IF NOT EXISTS book_type VARCHAR(10);
-ALTER TABLE book ADD COLUMN IF NOT EXISTS book_cover_image TEXT;
-UPDATE book
-SET book_type = CASE WHEN book_file IS NULL THEN 'physical' ELSE 'file' END
-WHERE book_type IS NULL OR book_type NOT IN ('physical', 'file');
-ALTER TABLE book ALTER COLUMN book_type SET DEFAULT 'physical';
-ALTER TABLE book ALTER COLUMN book_type SET NOT NULL;
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'chk_book_type'
-          AND conrelid = 'book'::regclass
-    ) THEN
-        ALTER TABLE book
-            ADD CONSTRAINT chk_book_type
-            CHECK (book_type IN ('physical', 'file'));
-    END IF;
-END $$;
-
 
 -- 5. HISTORY
 CREATE TABLE IF NOT EXISTS history (
@@ -140,17 +114,11 @@ CREATE TABLE IF NOT EXISTS shelf_floor (
     shelf_floor_limit INTEGER,
     shelf_floor INTEGER NOT NULL,
 
-    book_id BIGINT,
     category_id BIGINT,
 
     CONSTRAINT fk_shelf_floor_shelf
         FOREIGN KEY (shelf_id)
         REFERENCES shelf(shelf_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_shelf_floor_book
-        FOREIGN KEY (book_id)
-        REFERENCES book(book_id)
         ON DELETE CASCADE,
 
     CONSTRAINT fk_shelf_floor_category
@@ -166,6 +134,23 @@ CREATE TABLE IF NOT EXISTS shelf_floor (
             shelf_floor_limit IS NULL
             OR shelf_floor_limit >= 0
         )
+);
+
+CREATE TABLE IF NOT EXISTS shelf_floor_book (
+    shelf_floor_book_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    shelf_floor_id BIGINT NOT NULL,
+    book_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_shelf_floor_book_floor
+        FOREIGN KEY (shelf_floor_id)
+        REFERENCES shelf_floor(shelf_floor_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_shelf_floor_book_book
+        FOREIGN KEY (book_id)
+        REFERENCES book(book_id)
+        ON DELETE CASCADE
 );
 
 
@@ -370,42 +355,32 @@ WITH seed_shelf_floors (
     shelf_name,
     shelf_floor_limit,
     shelf_floor,
-    book_name,
     category_name
 ) AS (
     VALUES
-        ('ชั้น A', 12, 1, 'Harry Potter and the Philosopher''s Stone', 'นวนิยาย'),
-        ('ชั้น A', 12, 2, 'The Midnight Library', 'นวนิยาย'),
-        ('ชั้น A', 12, 3, 'Pride and Prejudice', 'นวนิยาย'),
-        ('ชั้น B', 10, 1, 'Atomic Habits', 'พัฒนาตนเอง'),
-        ('ชั้น B', 10, 2, 'Sapiens', 'ประวัติศาสตร์'),
-        ('ชั้น B', 10, 3, 'A Brief History of Time', 'วิทยาศาสตร์'),
-        ('ชั้น B', 10, 4, 'Clean Code', 'เทคโนโลยี'),
-        ('ชั้น C', 12, 1, 'Eloquent JavaScript', 'เทคโนโลยี')
+        ('ชั้น A', 12, 1, 'นวนิยาย'),
+        ('ชั้น A', 12, 2, 'นวนิยาย'),
+        ('ชั้น A', 12, 3, 'นวนิยาย'),
+        ('ชั้น B', 10, 1, 'พัฒนาตนเอง'),
+        ('ชั้น B', 10, 2, 'ประวัติศาสตร์'),
+        ('ชั้น B', 10, 3, 'วิทยาศาสตร์'),
+        ('ชั้น B', 10, 4, 'เทคโนโลยี'),
+        ('ชั้น C', 12, 1, 'เทคโนโลยี')
 )
 INSERT INTO shelf_floor (
     shelf_id,
     shelf_floor_limit,
     shelf_floor,
-    book_id,
     category_id
 )
 SELECT
     shelf.shelf_id,
     seed.shelf_floor_limit,
     seed.shelf_floor,
-    book.book_id,
     category.category_id
 FROM seed_shelf_floors seed
 JOIN shelf ON shelf.shelf_name = seed.shelf_name
-JOIN book ON book.book_name = seed.book_name
-JOIN category ON category.category_name = seed.category_name
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM shelf_floor existing_floor
-    WHERE existing_floor.shelf_id = shelf.shelf_id
-      AND existing_floor.book_id = book.book_id
-);
+JOIN category ON category.category_name = seed.category_name;
 
 INSERT INTO alert (
     alert_repeat_type,

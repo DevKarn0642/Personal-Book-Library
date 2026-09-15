@@ -1,5 +1,6 @@
 import { LockOutlined, MailOutlined } from '@ant-design/icons'
-import { Alert, Button, Card, Flex, Form, Grid, Input, Typography, theme } from 'antd'
+import { App as AntdApp, Button, Card, Flex, Form, Grid, Input, Typography, theme } from 'antd'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 import { useLogin } from '../hooks/useLogin.js'
 
 const { Title } = Typography
@@ -7,13 +8,17 @@ const { Title } = Typography
 export function LoginPage({ onLoginSuccess }) {
   const screens = Grid.useBreakpoint()
   const { token } = theme.useToken()
-  const { clearFeedback, data, error, isLoading, submitLogin } = useLogin()
+  const { message } = AntdApp.useApp()
+  const { clearFeedback, error, isLoading, submitLogin } = useLogin()
   const isCompact = !screens.sm
+
+  useFeedbackMessage({ error, onErrorShown: clearFeedback })
 
   async function handleSubmit(credentials) {
     const result = await submitLogin(credentials)
 
     if (result) {
+      message.success('เข้าสู่ระบบสำเร็จ')
       onLoginSuccess?.(result)
     }
   }
@@ -46,9 +51,6 @@ export function LoginPage({ onLoginSuccess }) {
           >
             Personal Book Library
           </Title>
-
-          {error && <Alert message={error} showIcon type="error" />}
-          {data && <Alert message="เข้าสู่ระบบสำเร็จ" showIcon type="success" />}
 
           <Form
             layout="vertical"

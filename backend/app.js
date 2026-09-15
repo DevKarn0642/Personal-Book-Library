@@ -29,6 +29,10 @@ const { createBookRouter } = require('./src/routes/book');
 const { createBookController } = require('./src/controllers/bookController');
 const { createBookService } = require('./src/services/bookService');
 const { createBookModel } = require('./src/models/BookModel');
+const { createBookArrangementRouter } = require('./src/routes/bookArrangement');
+const { createBookArrangementController } = require('./src/controllers/bookArrangementController');
+const { createBookArrangementService } = require('./src/services/bookArrangementService');
+const { createBookArrangementModel } = require('./src/models/BookArrangementModel');
 const { createHistoryRouter } = require('./src/routes/history');
 const { createHistoryController } = require('./src/controllers/historyController');
 const { createHistoryService } = require('./src/services/historyService');
@@ -64,6 +68,9 @@ function createApp({ pool, jwtSecret, bookCoverUploadDirectory, bookUploadDirect
   const bookModel = createBookModel({ pool });
   const bookService = createBookService({ bookModel });
   const bookController = createBookController({ bookService });
+  const bookArrangementModel = createBookArrangementModel({ pool });
+  const bookArrangementService = createBookArrangementService({ bookArrangementModel });
+  const bookArrangementController = createBookArrangementController({ bookArrangementService });
   const historyModel = createHistoryModel({ pool });
   const historyService = createHistoryService({ bookModel, historyModel });
   const historyController = createHistoryController({ historyService });
@@ -93,6 +100,7 @@ function createApp({ pool, jwtSecret, bookCoverUploadDirectory, bookUploadDirect
   app.use('/api/categories', createCategoryRouter({ categoryController, requireAuthentication }));
   app.use('/api/authors', createAuthorRouter({ authorController, requireAuthentication }));
   app.use('/api/books', createBookRouter({ bookController, bookFileUpload, requireAuthentication }));
+  app.use('/api/book-arrangements', createBookArrangementRouter({ bookArrangementController, requireAuthentication }));
   app.use('/api/histories', createHistoryRouter({ historyController, requireAuthentication }));
   app.use('/api/shelves', createShelfRouter({ shelfController, requireAuthentication }));
   app.use('/api/shelves/:shelfId/floors', createShelfFloorRouter({ shelfFloorController, requireAuthentication }));

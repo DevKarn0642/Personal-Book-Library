@@ -35,6 +35,13 @@ export async function listAlertBooks() {
   return body.books
 }
 
+export async function listActiveAlerts() {
+  const response = await apiRequest('/api/alerts/active')
+  const body = await readResponse(response, 'ไม่สามารถโหลดการแจ้งเตือนที่เปิดใช้งานได้')
+
+  return body.alerts
+}
+
 export async function createAlert(alertInput) {
   const response = await apiRequest('/api/alerts', {
     method: 'POST',

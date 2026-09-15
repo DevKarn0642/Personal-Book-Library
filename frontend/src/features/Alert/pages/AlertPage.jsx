@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Alert, Button, Card, Space } from 'antd'
+import { Button, Card, Space } from 'antd'
 import { useState } from 'react'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 import { AlertList } from '../components/AlertList.jsx'
 import { AlertModal } from '../components/AlertModal.jsx'
 import { useAlerts } from '../hooks/useAlerts.js'
@@ -24,6 +25,13 @@ export function AlertPage() {
     removeAlert,
     successMessage,
   } = useAlerts()
+
+  useFeedbackMessage({
+    error,
+    onErrorShown: clearError,
+    onSuccessShown: clearSuccessMessage,
+    successMessage,
+  })
 
   function openCreateModal() {
     clearError()
@@ -60,20 +68,6 @@ export function AlertPage() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      {error && (
-        <Alert closable message={error} onClose={clearError} showIcon type="error" />
-      )}
-
-      {successMessage && (
-        <Alert
-          closable
-          message={successMessage}
-          onClose={clearSuccessMessage}
-          showIcon
-          type="success"
-        />
-      )}
-
       <Card
         extra={(
           <Button disabled={isLoading || isMutating} icon={<PlusOutlined />} onClick={openCreateModal} type="primary">

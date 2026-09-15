@@ -5,14 +5,17 @@ import {
   PlusCircleOutlined,
   SettingOutlined,
   TagsOutlined,
+  UnorderedListOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import { Layout } from 'antd'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AlertPage } from '../../features/Alert/pages/AlertPage.jsx'
+import { AlertNotificationWatcher } from '../../features/Alert/components/AlertNotificationWatcher.jsx'
 import { BookPage } from '../../features/Book/pages/BookPage.jsx'
 import { CategoryPage } from '../../features/Category/pages/CategoryPage.jsx'
 import { AuthorPage } from '../../features/author/pages/AuthorPage.jsx'
+import { BookArrangementPage } from '../../features/book-arrangement/pages/BookArrangementPage.jsx'
 import { HistoryPage } from '../../features/History/pages/HistoryPage.jsx'
 import { LibraryPage } from '../../features/Library/pages/LibraryPage.jsx'
 import { PdfReaderPage } from '../../features/Library/pages/PdfReaderPage.jsx'
@@ -34,6 +37,7 @@ const navigationItems = [
       { key: 'authors', path: '/authors', icon: <UserOutlined />, label: 'ผู้เขียน' },
       { key: 'add-book', path: '/books/new', icon: <PlusCircleOutlined />, label: 'เพิ่มหนังสือ' },
       { key: 'shelves', path: '/shelves/new', icon: <DatabaseOutlined />, label: 'เพิ่มชั้นวางหนังสือ' },
+      { key: 'book-arrangement', path: '/book-arrangement', icon: <UnorderedListOutlined />, label: 'จัดวางหนังสือ' },
     ],
   },
 ]
@@ -50,7 +54,12 @@ function ProtectedLayout({ isAuthenticated, onSignOut }) {
   }
 
   if (location.pathname.startsWith('/library/read/')) {
-    return <Outlet />
+    return (
+      <>
+        <AlertNotificationWatcher />
+        <Outlet />
+      </>
+    )
   }
 
   function handleNavigate(key) {
@@ -68,6 +77,7 @@ function ProtectedLayout({ isAuthenticated, onSignOut }) {
       pageTitle={selectedItem?.label || 'Personal Book Library'}
       selectedKey={selectedItem?.key}
     >
+      <AlertNotificationWatcher />
       <Outlet />
     </MainLayout>
   )
@@ -101,6 +111,7 @@ function AppRoutes({ isAuthenticated, onLoginSuccess, onSignOut }) {
         <Route element={<AuthorPage />} path="/authors" />
         <Route element={<BookPage />} path="/books/new" />
         <Route element={<ShelfPage />} path="/shelves/new" />
+        <Route element={<BookArrangementPage />} path="/book-arrangement" />
         <Route element={<HistoryPage />} path="/history" />
       </Route>
 

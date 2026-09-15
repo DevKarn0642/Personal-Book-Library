@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Alert, Button, Card, Space } from 'antd'
+import { Button, Card, Space } from 'antd'
 import { useState } from 'react'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 import { ShelfFloorModal } from '../components/ShelfFloorModal.jsx'
 import { ShelfList } from '../components/ShelfList.jsx'
 import { ShelfModal } from '../components/ShelfModal.jsx'
@@ -11,6 +12,9 @@ const EMPTY_SHELF_FLOORS = []
 
 function toFormFloors(shelfFloors) {
   return shelfFloors.map((shelfFloor) => ({
+    categoryId: shelfFloor.category_id === null || shelfFloor.category_id === undefined
+      ? undefined
+      : String(shelfFloor.category_id),
     shelfFloorId: shelfFloor.shelf_floor_id,
     shelfFloor: Number(shelfFloor.shelf_floor),
     shelfFloorLimit: Number(shelfFloor.shelf_floor_limit),
@@ -39,6 +43,7 @@ export function ShelfPage() {
     successMessage,
   } = useShelves()
   const {
+    categories: shelfFloorCategories,
     clearError: clearShelfFloorError,
     clearSuccessMessage: clearShelfFloorSuccessMessage,
     error: shelfFloorError,
@@ -53,6 +58,19 @@ export function ShelfPage() {
     || isFetchingShelf
     || isShelfFloorLoading
     || isShelfFloorModalOpen
+
+  useFeedbackMessage({
+    error,
+    onErrorShown: clearError,
+    onSuccessShown: clearSuccessMessage,
+    successMessage,
+  })
+  useFeedbackMessage({
+    error: shelfFloorError,
+    onErrorShown: clearShelfFloorError,
+    onSuccessShown: clearShelfFloorSuccessMessage,
+    successMessage: shelfFloorSuccessMessage,
+  })
 
   function openCreateModal() {
     clearError()
@@ -135,34 +153,6 @@ export function ShelfPage() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      {error && (
-        <Alert closable message={error} onClose={clearError} showIcon type="error" />
-      )}
-
-      {successMessage && (
-        <Alert
-          closable
-          message={successMessage}
-          onClose={clearSuccessMessage}
-          showIcon
-          type="success"
-        />
-      )}
-
-      {shelfFloorError && (
-        <Alert closable message={shelfFloorError} onClose={clearShelfFloorError} showIcon type="error" />
-      )}
-
-      {shelfFloorSuccessMessage && (
-        <Alert
-          closable
-          message={shelfFloorSuccessMessage}
-          onClose={clearShelfFloorSuccessMessage}
-          showIcon
-          type="success"
-        />
-      )}
-
       <Card
         extra={(
           <Button disabled={isShelfTableBusy} icon={<PlusOutlined />} onClick={openCreateModal} type="primary">
@@ -190,6 +180,7 @@ export function ShelfPage() {
       />
 
       <ShelfFloorModal
+        categories={shelfFloorCategories}
         initialFloors={initialShelfFloors}
         isOpen={isShelfFloorModalOpen}
         isSubmitting={isPageMutating}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ConfigProvider, Flex, Layout, Spin } from 'antd'
+import { App as AntdApp, ConfigProvider, Flex, Layout, Spin } from 'antd'
 import { getCurrentUser, logout } from '../features/auth/services/authApi.js'
 import { AppRouter } from './router/AppRouter.jsx'
 
@@ -56,19 +56,21 @@ function App() {
         },
       }}
     >
-      {isCheckingSession ? (
-        <Layout style={{ minHeight: '100svh' }}>
-          <Flex align="center" justify="center" style={{ minHeight: '100svh' }}>
-            <Spin size="large" />
-          </Flex>
-        </Layout>
-      ) : (
-        <AppRouter
-          isAuthenticated={isAuthenticated}
-          onLoginSuccess={() => setIsAuthenticated(true)}
-          onSignOut={handleSignOut}
-        />
-      )}
+      <AntdApp component={false}>
+        {isCheckingSession ? (
+          <Layout style={{ minHeight: '100svh' }}>
+            <Flex align="center" justify="center" style={{ minHeight: '100svh' }}>
+              <Spin size="large" />
+            </Flex>
+          </Layout>
+        ) : (
+          <AppRouter
+            isAuthenticated={isAuthenticated}
+            onLoginSuccess={() => setIsAuthenticated(true)}
+            onSignOut={handleSignOut}
+          />
+        )}
+      </AntdApp>
     </ConfigProvider>
   )
 }

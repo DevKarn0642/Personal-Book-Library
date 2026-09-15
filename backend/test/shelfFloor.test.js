@@ -32,8 +32,7 @@ test('creates a shelf floor after validating its shelf', async (t) => {
             shelf_id: params[0],
             shelf_floor_limit: params[1],
             shelf_floor: params[2],
-            book_id: params[3],
-            category_id: params[4],
+            category_id: params[3],
           }],
         };
       }
@@ -48,7 +47,6 @@ test('creates a shelf floor after validating its shelf', async (t) => {
     body: JSON.stringify({
       shelf_floor: 2,
       shelf_floor_limit: 30,
-      book_id: '13',
       category_id: '5',
     }),
   });
@@ -60,11 +58,10 @@ test('creates a shelf floor after validating its shelf', async (t) => {
       shelf_id: '8',
       shelf_floor_limit: 30,
       shelf_floor: 2,
-      book_id: '13',
       category_id: '5',
     },
   });
-  assert.deepEqual(queries[1].params, ['8', 30, 2, '13', '5']);
+  assert.deepEqual(queries[1].params, ['8', 30, 2, '5']);
 });
 
 test('rejects invalid input and anonymous requests before querying', async (t) => {
@@ -126,7 +123,6 @@ test('lists shelf floors with server-side pagination', async (t) => {
             shelf_id: '8',
             shelf_floor_limit: 30,
             shelf_floor: 1,
-            book_id: null,
             category_id: null,
           }],
         };
@@ -145,7 +141,6 @@ test('lists shelf floors with server-side pagination', async (t) => {
       shelf_id: '8',
       shelf_floor_limit: 30,
       shelf_floor: 1,
-      book_id: null,
       category_id: null,
     }],
     pagination: { page: 1, pageSize: 10, total: 2, totalPages: 1 },
@@ -169,7 +164,6 @@ test('gets, updates, and deletes a shelf floor only within its shelf', async (t)
             shelf_id: params[0],
             shelf_floor_limit: 30,
             shelf_floor: 1,
-            book_id: null,
             category_id: null,
           }],
         };
@@ -177,12 +171,11 @@ test('gets, updates, and deletes a shelf floor only within its shelf', async (t)
       if (sql.includes('UPDATE shelf_floor')) {
         return {
           rows: [{
-            shelf_floor_id: params[5],
-            shelf_id: params[4],
+            shelf_floor_id: params[4],
+            shelf_id: params[3],
             shelf_floor_limit: params[0],
             shelf_floor: params[1],
-            book_id: params[2],
-            category_id: params[3],
+            category_id: params[2],
           }],
         };
       }
@@ -209,7 +202,6 @@ test('gets, updates, and deletes a shelf floor only within its shelf', async (t)
     shelf_id: '8',
     shelf_floor_limit: 40,
     shelf_floor: 2,
-    book_id: null,
     category_id: null,
   });
 

@@ -1,6 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Alert, Button, Card, Space } from 'antd'
+import { Button, Card, Space } from 'antd'
 import { useState } from 'react'
+import { useFeedbackMessage } from '../../../shared/hooks/useFeedbackMessage.js'
 import { BookList } from '../components/BookList.jsx'
 import { BookModal } from '../components/BookModal.jsx'
 import { useBooks } from '../hooks/useBooks.js'
@@ -25,6 +26,13 @@ export function BookPage() {
     removeBook,
     successMessage,
   } = useBooks()
+
+  useFeedbackMessage({
+    error,
+    onErrorShown: clearError,
+    onSuccessShown: clearSuccessMessage,
+    successMessage,
+  })
 
   function openCreateModal() {
     clearError()
@@ -58,11 +66,6 @@ export function BookPage() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      {error && <Alert closable message={error} onClose={clearError} showIcon type="error" />}
-      {successMessage && (
-        <Alert closable message={successMessage} onClose={clearSuccessMessage} showIcon type="success" />
-      )}
-
       <Card
         extra={(
           <Button

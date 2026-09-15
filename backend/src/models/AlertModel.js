@@ -1,5 +1,13 @@
 function createAlertModel({ pool }) {
   const alertColumns = 'alert_id, alert_repeat_type, alert_date, alert_status, alert_time, user_id, book_id';
+  const activeAlertColumns = `alert.alert_id,
+    alert.alert_repeat_type,
+    alert.alert_date,
+    alert.alert_status,
+    alert.alert_time,
+    alert.user_id,
+    alert.book_id,
+    book.book_name`;
 
   async function create({ alertRepeatType, alertDate, alertStatus, alertTime, userId, bookId }) {
     const { rows } = await pool.query(
@@ -49,6 +57,21 @@ function createAlertModel({ pool }) {
     return rows;
   }
 
+  async function findActiveForUser(userId) {
+    const { rows } = await pool.query(
+      `SELECT ${activeAlertColumns}
+       FROM alert
+       LEFT JOIN book ON book.book_id = alert.book_id
+       WHERE alert.user_id = $1
+         AND alert.alert_status = TRUE
+         AND alert.alert_date IS NOT NULL
+         AND alert.alert_time IS NOT NULL
+       ORDER BY alert.alert_time ASC, alert.alert_id ASC`,
+      [userId],
+    );
+    return rows;
+  }
+
   async function findById(alertId, userId) {
     const { rows } = await pool.query(
       `SELECT ${alertColumns}
@@ -91,7 +114,16 @@ function createAlertModel({ pool }) {
     return rows[0];
   }
 
-  return { countAll, create, findBookOptions, findById, findPage, remove, update };
+  return {
+    countAll,
+    create,
+    findActiveForUser,
+    findBookOptions,
+    findById,
+    findPage,
+    remove,
+    update,
+  };
 }
 
 module.exports = { createAlertModel };

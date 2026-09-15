@@ -1,8 +1,9 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Form, Input, InputNumber, Space, Table } from 'antd'
+import { Button, Form, Input, InputNumber, Select, Space, Table } from 'antd'
 import { useEffect } from 'react'
 
 const MAX_INTEGER = 2147483647
+const EMPTY_CATEGORIES = []
 const EMPTY_FLOORS = []
 
 function parseIntegerInput(value) {
@@ -26,7 +27,13 @@ function getNextFloorNumber(floors) {
   return largestFloorNumber + 1
 }
 
-export function ShelfFloorForm({ initialFloors = EMPTY_FLOORS, isSubmitting, onCancel, onSubmit }) {
+export function ShelfFloorForm({
+  categories = EMPTY_CATEGORIES,
+  initialFloors = EMPTY_FLOORS,
+  isSubmitting,
+  onCancel,
+  onSubmit,
+}) {
   const [form] = Form.useForm()
   const floors = Form.useWatch('floors', form) || []
   const totalCapacity = floors.reduce(
@@ -79,7 +86,7 @@ export function ShelfFloorForm({ initialFloors = EMPTY_FLOORS, isSubmitting, onC
             {
               key: 'shelfFloor',
               title: 'ชั้นที่',
-              width: '35%',
+              width: '20%',
               render: (_, field) => (
                 <>
                   <Form.Item hidden name={[field.name, 'shelfFloorId']}>
@@ -114,7 +121,7 @@ export function ShelfFloorForm({ initialFloors = EMPTY_FLOORS, isSubmitting, onC
             {
               key: 'shelfFloorLimit',
               title: 'จำนวนที่เก็บได้',
-              width: '45%',
+              width: '25%',
               render: (_, field) => (
                 <Form.Item
                   name={[field.name, 'shelfFloorLimit']}
@@ -136,6 +143,31 @@ export function ShelfFloorForm({ initialFloors = EMPTY_FLOORS, isSubmitting, onC
                     onKeyDown={preventNonNumericKey}
                     parser={parseIntegerInput}
                     precision={0}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+              ),
+            },
+            {
+              key: 'categoryId',
+              title: 'ประเภทหนังสือ',
+              width: '45%',
+              render: (_, field) => (
+                <Form.Item
+                  name={[field.name, 'categoryId']}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Select
+                    allowClear
+                    disabled={isSubmitting}
+                    notFoundContent="ยังไม่มีประเภทหนังสือให้เลือก"
+                    optionFilterProp="label"
+                    options={categories.map((category) => ({
+                      label: category.category_name,
+                      value: String(category.category_id),
+                    }))}
+                    placeholder="เลือกประเภทหนังสือ"
+                    showSearch
                     style={{ width: '100%' }}
                   />
                 </Form.Item>
@@ -174,6 +206,7 @@ export function ShelfFloorForm({ initialFloors = EMPTY_FLOORS, isSubmitting, onC
                       shelfFloorId: null,
                       shelfFloor: nextFloorNumber,
                       shelfFloorLimit: null,
+                      categoryId: undefined,
                     })}
                   >
                     เพิ่มชั้นย่อย
