@@ -16,24 +16,39 @@ function createHistoryModel({ pool }) {
     return rows[0];
   }
 
-  async function findPage(userId, { limit, offset }) {
+  function buildFilter(userId, bookId) {
+    const values = [userId];
+    let whereClause = 'WHERE user_id = $1';
+
+    if (bookId) {
+      values.push(bookId);
+      whereClause += ` AND book_id = $${values.length}`;
+    }
+
+    return { values, whereClause };
+  }
+
+  async function findPage(userId, { bookId, limit, offset }) {
+    const { values, whereClause } = buildFilter(userId, bookId);
+    values.push(limit, offset);
     const { rows } = await pool.query(
       `SELECT ${historyColumns}
        FROM history
-       WHERE user_id = $1
+       ${whereClause}
        ORDER BY history_date_at DESC, history_id DESC
-       LIMIT $2 OFFSET $3`,
-      [userId, limit, offset],
+       LIMIT $${values.length - 1} OFFSET $${values.length}`,
+      values,
     );
     return rows;
   }
 
-  async function countAll(userId) {
+  async function countAll(userId, { bookId } = {}) {
+    const { values, whereClause } = buildFilter(userId, bookId);
     const { rows } = await pool.query(
       `SELECT COUNT(*) AS total
        FROM history
-       WHERE user_id = $1`,
-      [userId],
+       ${whereClause}`,
+      values,
     );
     return rows[0].total;
   }
@@ -54,7 +69,8 @@ function createHistoryModel({ pool }) {
       `UPDATE history
        SET book_id = $1,
            history_page = $2,
-           history_status = $3
+           history_status = $3,
+           history_date_at = CURRENT_TIMESTAMP
        WHERE history_id = $4 AND user_id = $5
        RETURNING ${historyColumns}`,
       [bookId, historyPage, historyStatus, historyId, userId],

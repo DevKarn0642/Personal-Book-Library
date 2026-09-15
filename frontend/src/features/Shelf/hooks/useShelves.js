@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import {
   createShelf,
   deleteShelf,
+  getShelf,
   listShelves,
   updateShelf,
 } from '../services/shelfApi.js'
@@ -15,6 +16,7 @@ export function useShelves() {
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isFetchingShelf, setIsFetchingShelf] = useState(false)
   const [isMutating, setIsMutating] = useState(false)
 
   const loadShelves = useCallback(async () => {
@@ -31,6 +33,28 @@ export function useShelves() {
   useEffect(() => {
     loadShelves()
   }, [loadShelves])
+
+  async function fetchShelf(shelfId) {
+    setIsFetchingShelf(true)
+    setError(null)
+
+    try {
+      const shelf = await getShelf(shelfId)
+      setShelves((currentShelves) =>
+        currentShelves.map((currentShelf) =>
+          String(currentShelf.shelf_id) === String(shelf.shelf_id)
+            ? shelf
+            : currentShelf,
+        ),
+      )
+      return shelf
+    } catch (requestError) {
+      setError(getErrorMessage(requestError))
+      return null
+    } finally {
+      setIsFetchingShelf(false)
+    }
+  }
 
   async function addShelf(shelfName, shelfLimit, shelfColor, shelfMaterial) {
     setIsMutating(true)
@@ -128,6 +152,8 @@ export function useShelves() {
     clearSuccessMessage,
     editShelf,
     error,
+    fetchShelf,
+    isFetchingShelf,
     isLoading,
     isMutating,
     removeShelf,

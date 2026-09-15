@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { updateShelf } from '../services/shelfApi.js'
-import { createShelfFloor, listShelfFloors } from '../services/shelfFloorApi.js'
+import {
+  createShelfFloor,
+  deleteShelfFloor,
+  listShelfFloors,
+  updateShelfFloor,
+} from '../services/shelfFloorApi.js'
 
 const MAX_INTEGER = 2147483647
 
@@ -11,9 +16,24 @@ function getErrorMessage(error) {
 export function useShelfFloorCreator() {
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [isMutating, setIsMutating] = useState(false)
 
-  async function addShelfFloors(shelf, floors) {
+  async function loadShelfFloors(shelfId) {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      return await listShelfFloors(shelfId)
+    } catch (requestError) {
+      setError(getErrorMessage(requestError))
+      return null
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function saveShelfFloors(shelf, floors) {
     if (!shelf?.shelf_id || floors.length === 0) return null
 
     setIsMutating(true)
@@ -22,30 +42,58 @@ export function useShelfFloorCreator() {
 
     try {
       const existingShelfFloors = await listShelfFloors(shelf.shelf_id)
-      const existingFloorNumbers = new Set(
-        existingShelfFloors.map((shelfFloor) => Number(shelfFloor.shelf_floor)),
-      )
+      const submittedFloorNumbers = new Set()
+      const hasDuplicateFloorNumber = floors.some(({ shelfFloor }) => {
+        if (submittedFloorNumbers.has(shelfFloor)) return true
 
-      if (floors.some(({ shelfFloor }) => existingFloorNumbers.has(shelfFloor))) {
-        throw new Error('มีหมายเลขชั้นนี้อยู่แล้วในชั้นวาง')
+        submittedFloorNumbers.add(shelfFloor)
+        return false
+      })
+
+      if (hasDuplicateFloorNumber) {
+        throw new Error('หมายเลขชั้นต้องไม่ซ้ำกัน')
       }
 
-      const existingCapacity = existingShelfFloors.reduce(
-        (total, shelfFloor) => total + Number(shelfFloor.shelf_floor_limit ?? 0),
-        0,
-      )
-      const addedCapacity = floors.reduce(
+      const shelfLimit = floors.reduce(
         (total, shelfFloor) => total + Number(shelfFloor.shelfFloorLimit),
         0,
       )
-      const shelfLimit = existingCapacity + addedCapacity
 
       if (shelfLimit > MAX_INTEGER) {
         throw new Error('จำนวนที่เก็บได้รวมต้องไม่เกิน 2,147,483,647')
       }
 
-      for (const { shelfFloor, shelfFloorLimit } of floors) {
-        await createShelfFloor(shelf.shelf_id, shelfFloor, shelfFloorLimit)
+      const existingFloorsById = new Map(
+        existingShelfFloors.map((shelfFloor) => [String(shelfFloor.shelf_floor_id), shelfFloor]),
+      )
+      const submittedExistingFloorIds = new Set()
+
+      for (const { shelfFloorId, shelfFloor, shelfFloorLimit } of floors) {
+        if (!shelfFloorId) {
+          await createShelfFloor(shelf.shelf_id, shelfFloor, shelfFloorLimit)
+          continue
+        }
+
+        const existingShelfFloor = existingFloorsById.get(String(shelfFloorId))
+        if (!existingShelfFloor) {
+          throw new Error('ไม่พบชั้นย่อยที่ต้องการแก้ไข')
+        }
+
+        submittedExistingFloorIds.add(String(shelfFloorId))
+        await updateShelfFloor(
+          shelf.shelf_id,
+          shelfFloorId,
+          shelfFloor,
+          shelfFloorLimit,
+          existingShelfFloor.book_id,
+          existingShelfFloor.category_id,
+        )
+      }
+
+      for (const existingShelfFloor of existingShelfFloors) {
+        if (!submittedExistingFloorIds.has(String(existingShelfFloor.shelf_floor_id))) {
+          await deleteShelfFloor(shelf.shelf_id, existingShelfFloor.shelf_floor_id)
+        }
       }
 
       const updatedShelf = await updateShelf(
@@ -55,7 +103,7 @@ export function useShelfFloorCreator() {
         shelf.shelf_color,
         shelf.shelf_material,
       )
-      setSuccessMessage(`เพิ่มชั้นย่อย ${floors.length} ชั้น และอัปเดตความจุรวมแล้ว`)
+      setSuccessMessage('บันทึกชั้นย่อยและอัปเดตความจุรวมแล้ว')
       return updatedShelf
     } catch (requestError) {
       setError(getErrorMessage(requestError))
@@ -74,11 +122,13 @@ export function useShelfFloorCreator() {
   }
 
   return {
-    addShelfFloors,
     clearError,
     clearSuccessMessage,
     error,
+    isLoading,
     isMutating,
+    loadShelfFloors,
+    saveShelfFloors,
     successMessage,
   }
 }

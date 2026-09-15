@@ -7,10 +7,10 @@ function createHistoryService({ bookModel, historyModel }) {
     return { history };
   }
 
-  async function listHistories(userId, { limit, offset }) {
+  async function listHistories(userId, { bookId, limit, offset }) {
     const [histories, total] = await Promise.all([
-      historyModel.findPage(userId, { limit, offset }),
-      historyModel.countAll(userId),
+      historyModel.findPage(userId, { bookId, limit, offset }),
+      historyModel.countAll(userId, { bookId }),
     ]);
     return { histories, total: Number(total) };
   }

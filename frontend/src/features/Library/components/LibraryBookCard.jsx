@@ -41,7 +41,7 @@ export function LibraryBookCard({ authorsById, book, categoriesById, onSelect })
             alt={`หน้าปก ${book.book_name}`}
             preview={false}
             src={getCoverUrl(book.book_cover_image)}
-            style={{ height: 264, objectFit: 'cover', width: '100%' }}
+            style={{ objectFit: 'cover', width: '100%' }}
           />
         </div>
       ) : (

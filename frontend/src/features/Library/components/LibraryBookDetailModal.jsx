@@ -6,7 +6,7 @@ import {
   TagsOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Alert, Descriptions, Image, Modal, Space, Spin, Tag, Typography } from 'antd'
+import { Alert, Button, Descriptions, Image, Modal, Space, Spin, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
 import { API_BASE_URL } from '../../../services/api.js'
 
@@ -38,6 +38,10 @@ function formatPublicationDate(bookDate) {
   return date.isValid() ? date.format('DD/MM/YYYY') : bookDate
 }
 
+function isPdfFile(filePath) {
+  return typeof filePath === 'string' && /\.pdf(?:$|[?#])/i.test(filePath)
+}
+
 export function LibraryBookDetailModal({
   authors,
   book,
@@ -45,6 +49,7 @@ export function LibraryBookDetailModal({
   error,
   isLoading,
   onClose,
+  onReadBook,
   onRetry,
   open,
 }) {
@@ -100,9 +105,16 @@ export function LibraryBookDetailModal({
                 )}
                 {book.book_file && (
                   <Descriptions.Item label={<><FileTextOutlined /> ไฟล์หนังสือ</>}>
-                    <Typography.Link href={getFileUrl(book.book_file)} rel="noreferrer" target="_blank">
-                      เปิดไฟล์หนังสือ
-                    </Typography.Link>
+                    <Space wrap>
+                      {isPdfFile(book.book_file) && (
+                        <Button onClick={() => onReadBook(book)} size="small" type="primary">
+                          อ่านในแอป
+                        </Button>
+                      )}
+                      <Typography.Link href={getFileUrl(book.book_file)} rel="noreferrer" target="_blank">
+                        เปิดไฟล์ในแท็บใหม่
+                      </Typography.Link>
+                    </Space>
                   </Descriptions.Item>
                 )}
               </Descriptions>

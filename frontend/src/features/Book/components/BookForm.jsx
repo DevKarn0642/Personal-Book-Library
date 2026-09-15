@@ -1,19 +1,16 @@
-import { UploadOutlined } from '@ant-design/icons'
-import { Button, DatePicker, Form, Input, InputNumber, Select, Space, Typography, Upload } from 'antd'
+import { FileDoneOutlined, UploadOutlined } from '@ant-design/icons'
+import { Button, DatePicker, Form, Image, Input, InputNumber, Select, Space, Tooltip, Upload } from 'antd'
 import dayjs from 'dayjs'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { API_BASE_URL } from '../../../services/api.js'
+import './BookForm.css'
 
 function toSelectValue(value) {
   return value === null || value === undefined ? undefined : String(value)
 }
 
-function getFileName(bookFile) {
-  if (!bookFile) return ''
-  try {
-    return decodeURIComponent(bookFile.split('/').pop())
-  } catch {
-    return bookFile
-  }
+function getFileUrl(filePath) {
+  return /^https?:\/\//i.test(filePath) ? filePath : `${API_BASE_URL}${filePath}`
 }
 
 function getUploadFileList(event) {
@@ -30,9 +27,11 @@ export function BookForm({
   onSubmit,
 }) {
   const [form] = Form.useForm()
+  const [selectedCoverPreview, setSelectedCoverPreview] = useState(null)
   const bookType = Form.useWatch('bookType', form)
   const isEditing = Boolean(book)
   const isDisabled = isSubmitting || isReferenceDataLoading
+  const coverPreviewUrl = selectedCoverPreview || (book?.book_cover_image ? getFileUrl(book.book_cover_image) : null)
 
   useEffect(() => {
     form.setFieldsValue({
@@ -46,6 +45,10 @@ export function BookForm({
       categoryId: toSelectValue(book?.category_id),
     })
   }, [book, form])
+
+  useEffect(() => () => {
+    if (selectedCoverPreview) URL.revokeObjectURL(selectedCoverPreview)
+  }, [selectedCoverPreview])
 
   async function handleFinish(values) {
     const savedBook = await onSubmit({
@@ -71,9 +74,53 @@ export function BookForm({
     onCancel()
   }
 
+  function handleCoverChange({ fileList }) {
+    const selectedCover = fileList[fileList.length - 1]?.originFileObj
+
+    if (!selectedCover) {
+      setSelectedCoverPreview(null)
+      return
+    }
+
+    setSelectedCoverPreview(URL.createObjectURL(selectedCover))
+  }
+
   return (
     <Form form={form} layout="vertical" onFinish={handleFinish}>
-      <Form.Item
+      <div className="book-form__layout">
+        <aside className="book-form__cover-column">
+          <Form.Item
+            getValueFromEvent={getUploadFileList}
+            label="รูปภาพหน้าปก"
+            name="bookCoverImage"
+            valuePropName="fileList"
+          >
+            <Upload
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              aria-label="เลือกรูปภาพหน้าปก"
+              beforeUpload={() => false}
+              className="book-form__cover-upload"
+              disabled={isDisabled}
+              maxCount={1}
+              onChange={handleCoverChange}
+              showUploadList={false}
+            >
+              <div className="book-form__cover-frame">
+                {coverPreviewUrl && (
+                  <Image
+                    alt={`หน้าปก ${book?.book_name || 'หนังสือ'}`}
+                    className="book-form__cover-preview"
+                    preview={false}
+                    src={coverPreviewUrl}
+                  />
+                )}
+              </div>
+            </Upload>
+          </Form.Item>
+        </aside>
+
+        <div className="book-form__fields">
+          <Form.Item
         label="ชื่อหนังสือ"
         name="bookName"
         rules={[
@@ -147,9 +194,17 @@ export function BookForm({
       {bookType === 'file' && (
         <>
           <Form.Item
-            extra="รองรับไฟล์ PDF หรือ EPUB ขนาดไม่เกิน 50 MB"
             getValueFromEvent={getUploadFileList}
-            label="ไฟล์หนังสือ"
+            label={(
+              <Space size={6}>
+                <span>ไฟล์หนังสือ</span>
+                {book?.book_file && (
+                  <Tooltip title="มีไฟล์หนังสืออยู่แล้ว">
+                    <FileDoneOutlined aria-label="มีไฟล์หนังสืออยู่แล้ว" className="book-form__existing-file-icon" />
+                  </Tooltip>
+                )}
+              </Space>
+            )}
             name="bookFile"
             rules={[{ required: !book?.book_file, message: 'กรุณาเลือกไฟล์หนังสือ' }]}
             valuePropName="fileList"
@@ -165,41 +220,12 @@ export function BookForm({
               </Button>
             </Upload>
           </Form.Item>
-
-          {book?.book_file && (
-            <Typography.Text type="secondary">
-              ไฟล์ปัจจุบัน: {getFileName(book.book_file)} — เลือกไฟล์ใหม่เพื่อแทนที่
-            </Typography.Text>
-          )}
         </>
       )}
+        </div>
+      </div>
 
-      <Form.Item
-        extra="รองรับรูป JPG, PNG หรือ WebP ขนาดไม่เกิน 50 MB"
-        getValueFromEvent={getUploadFileList}
-        label="รูปภาพหน้าปก"
-        name="bookCoverImage"
-        valuePropName="fileList"
-      >
-        <Upload
-          accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-          beforeUpload={() => false}
-          disabled={isDisabled}
-          maxCount={1}
-        >
-          <Button disabled={isDisabled} icon={<UploadOutlined />}>
-            เลือกรูปภาพ
-          </Button>
-        </Upload>
-      </Form.Item>
-
-      {book?.book_cover_image && (
-        <Typography.Text type="secondary">
-          หน้าปกปัจจุบัน: {getFileName(book.book_cover_image)} — เลือกรูปใหม่เพื่อแทนที่
-        </Typography.Text>
-      )}
-
-      <Space>
+      <Space className="book-form__actions">
         <Button htmlType="submit" loading={isSubmitting} type="primary">
           {isEditing ? 'บันทึกการแก้ไข' : 'เพิ่มหนังสือ'}
         </Button>

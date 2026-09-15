@@ -1,0 +1,57 @@
+.book-form__layout {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.book-form__cover-column,
+.book-form__fields {
+  min-width: 0;
+}
+
+.book-form__cover-column .ant-form-item {
+  margin-bottom: 0;
+}
+
+.book-form__cover-upload,
+.book-form__cover-upload .ant-upload,
+.book-form__cover-frame {
+  display: block;
+  width: 100%;
+}
+
+.book-form__cover-frame {
+  aspect-ratio: 2 / 3;
+  background: #fafafa;
+  border: 1px dashed #bfbfbf;
+  border-radius: 12px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.book-form__cover-frame:hover {
+  border-color: #1677ff;
+}
+
+.book-form__cover-preview,
+.book-form__cover-preview .ant-image-img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.book-form__existing-file-icon {
+  color: #389e0d;
+  font-size: 16px;
+}
+
+.book-form__actions {
+  margin-top: 24px;
+}
+
+@media (max-width: 480px) {
+  .book-form__layout {
+    grid-template-columns: 1fr;
+  }
+}

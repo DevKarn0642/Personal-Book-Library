@@ -128,8 +128,23 @@ test('lists only the current user reading history with pagination', async (t) =>
     ['7'],
   );
 
+  const filtered = await fetch(`${baseUrl}?book_id=12&page=1&pageSize=1`, { headers });
+  assert.equal(filtered.status, 200);
+  assert.equal((await filtered.json()).pagination.total, 11);
+  assert.deepEqual(
+    queries.filter(query => query.sql.includes('ORDER BY history_date_at DESC')).at(-1).params,
+    ['7', '12', 1, 0],
+  );
+  assert.deepEqual(
+    queries.filter(query => query.sql.includes('COUNT(*) AS total')).at(-1).params,
+    ['7', '12'],
+  );
+
   const invalid = await fetch(`${baseUrl}?pageSize=101`, { headers });
   assert.equal(invalid.status, 400);
+
+  const invalidBookId = await fetch(`${baseUrl}?book_id=0`, { headers });
+  assert.equal(invalidBookId.status, 400);
 });
 
 test('gets, updates, and deletes only reading history owned by the authenticated user', async (t) => {

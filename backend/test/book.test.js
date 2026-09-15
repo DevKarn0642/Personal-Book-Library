@@ -141,7 +141,9 @@ test('uploads an e-book and cover image and serves both only to authenticated us
   const bookDownloadUrl = baseUrl.replace('/api/books', book.book_file);
   const coverDownloadUrl = baseUrl.replace('/api/books', book.book_cover_image);
   assert.equal((await fetch(bookDownloadUrl, { headers })).status, 200);
-  assert.equal((await fetch(coverDownloadUrl, { headers })).status, 200);
+  const coverDownloadResponse = await fetch(coverDownloadUrl, { headers });
+  assert.equal(coverDownloadResponse.status, 200);
+  assert.equal(coverDownloadResponse.headers.get('cross-origin-resource-policy'), 'cross-origin');
   assert.equal((await fetch(coverDownloadUrl)).status, 401);
 });
 

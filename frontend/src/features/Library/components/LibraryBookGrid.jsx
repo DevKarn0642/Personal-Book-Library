@@ -1,4 +1,3 @@
-import { List } from 'antd'
 import { LibraryBookCard } from './LibraryBookCard.jsx'
 
 export function LibraryBookGrid({ authors, books, categories, onSelectBook }) {
@@ -6,21 +5,17 @@ export function LibraryBookGrid({ authors, books, categories, onSelectBook }) {
   const categoriesById = new Map(categories.map((category) => [String(category.category_id), category]))
 
   return (
-    <List
-      className="library-book-grid"
-      dataSource={books}
-      grid={{ gutter: 20, lg: 4, md: 3, sm: 2, xs: 1 }}
-      renderItem={(book) => (
-        <List.Item className="library-book-grid__item">
+    <div className="library-book-grid" role="list">
+      {books.map((book) => (
+        <div className="library-book-grid__item" key={book.book_id} role="listitem">
           <LibraryBookCard
             authorsById={authorsById}
             book={book}
             categoriesById={categoriesById}
             onSelect={onSelectBook}
           />
-        </List.Item>
-      )}
-      rowKey="book_id"
-    />
+        </div>
+      ))}
+    </div>
   )
 }

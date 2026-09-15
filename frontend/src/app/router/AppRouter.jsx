@@ -15,6 +15,7 @@ import { CategoryPage } from '../../features/Category/pages/CategoryPage.jsx'
 import { AuthorPage } from '../../features/author/pages/AuthorPage.jsx'
 import { HistoryPage } from '../../features/History/pages/HistoryPage.jsx'
 import { LibraryPage } from '../../features/Library/pages/LibraryPage.jsx'
+import { PdfReaderPage } from '../../features/Library/pages/PdfReaderPage.jsx'
 import { ShelfPage } from '../../features/Shelf/pages/ShelfPage.jsx'
 import { LoginPage } from '../../features/auth/pages/LoginPage.jsx'
 import { AuthLayout } from '../../layouts/AuthLayout.jsx'
@@ -46,6 +47,10 @@ function ProtectedLayout({ isAuthenticated, onSignOut }) {
 
   if (!isAuthenticated) {
     return <Navigate replace to="/login" />
+  }
+
+  if (location.pathname.startsWith('/library/read/')) {
+    return <Outlet />
   }
 
   function handleNavigate(key) {
@@ -90,6 +95,7 @@ function AppRoutes({ isAuthenticated, onLoginSuccess, onSignOut }) {
       <Route element={<ProtectedLayout isAuthenticated={isAuthenticated} onSignOut={onSignOut} />}>
         <Route element={<Navigate replace to="/library" />} path="/" />
         <Route element={<LibraryPage />} path="/library" />
+        <Route element={<PdfReaderPage />} path="/library/read/:bookId" />
         <Route element={<AlertPage />} path="/notifications" />
         <Route element={<CategoryPage />} path="/categories" />
         <Route element={<AuthorPage />} path="/authors" />

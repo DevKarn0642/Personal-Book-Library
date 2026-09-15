@@ -95,10 +95,12 @@ function validateHistoryId(req, res, next) {
 function validateHistoryPagination(req, res, next) {
   const page = parsePositiveInteger(req.query.page, 1);
   const pageSize = parsePositiveInteger(req.query.pageSize, DEFAULT_PAGE_SIZE);
+  const validatedBookId = validatePositiveBigIntId(req.query.book_id, 'Book ID');
 
   if (page === undefined || pageSize === undefined || pageSize > MAX_PAGE_SIZE) {
     return res.status(400).json({ message: 'page must be a positive integer and pageSize must be between 1 and 100.' });
   }
+  if (validatedBookId.error) return res.status(400).json({ message: validatedBookId.error });
 
   const offset = (page - 1) * pageSize;
   if (!Number.isSafeInteger(offset)) {
@@ -106,6 +108,7 @@ function validateHistoryPagination(req, res, next) {
   }
 
   req.pagination = { page, pageSize, offset };
+  req.historyFilter = { bookId: validatedBookId.value };
   return next();
 }
 

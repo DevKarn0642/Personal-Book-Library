@@ -20,10 +20,19 @@ function toShelfFloorPayload(shelfFloor, shelfFloorLimit, bookId, categoryId) {
 }
 
 export async function listShelfFloors(shelfId) {
-  const response = await apiRequest(`/api/shelves/${shelfId}/floors?page=1&pageSize=100`)
-  const body = await readResponse(response, 'ไม่สามารถโหลดรายการชั้นย่อยได้')
+  const shelfFloors = []
+  let page = 1
+  let totalPages = 1
 
-  return body.shelfFloors
+  while (page <= totalPages) {
+    const response = await apiRequest(`/api/shelves/${shelfId}/floors?page=${page}&pageSize=100`)
+    const body = await readResponse(response, 'ไม่สามารถโหลดรายการชั้นย่อยได้')
+    shelfFloors.push(...body.shelfFloors)
+    totalPages = body.pagination?.totalPages || 1
+    page += 1
+  }
+
+  return shelfFloors
 }
 
 export async function createShelfFloor(shelfId, shelfFloor, shelfFloorLimit) {

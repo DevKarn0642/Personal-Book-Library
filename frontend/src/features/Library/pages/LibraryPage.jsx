@@ -45,6 +45,11 @@ export function LibraryPage() {
     resetFilters()
   }
 
+  function handleOpenReader(book) {
+    window.open(`/library/read/${book.book_id}`, '_blank', 'noopener')
+    closeBookDetails()
+  }
+
   const hasActiveFilters = Boolean(bookName || Object.values(filters).some(Boolean))
 
   return (
@@ -52,9 +57,6 @@ export function LibraryPage() {
       <div className="library-page__intro">
         <div>
           <Typography.Title level={2}>คลังหนังสือ</Typography.Title>
-          <Typography.Paragraph>
-            เลือกดูหนังสือในคอลเลกชันของคุณ หรือใช้ตัวกรองเพื่อค้นหาเล่มที่ต้องการ
-          </Typography.Paragraph>
         </div>
         <div className="library-page__count">
           <BookOutlined />
@@ -127,9 +129,11 @@ export function LibraryPage() {
         error={detailError}
         isLoading={isDetailLoading}
         onClose={closeBookDetails}
+        onReadBook={handleOpenReader}
         onRetry={() => openBookDetails(selectedBookId)}
         open={isDetailOpen}
       />
+
     </section>
   )
 }

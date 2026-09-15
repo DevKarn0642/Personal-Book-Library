@@ -7,9 +7,20 @@ import { ShelfModal } from '../components/ShelfModal.jsx'
 import { useShelfFloorCreator } from '../hooks/useShelfFloorCreator.js'
 import { useShelves } from '../hooks/useShelves.js'
 
+const EMPTY_SHELF_FLOORS = []
+
+function toFormFloors(shelfFloors) {
+  return shelfFloors.map((shelfFloor) => ({
+    shelfFloorId: shelfFloor.shelf_floor_id,
+    shelfFloor: Number(shelfFloor.shelf_floor),
+    shelfFloorLimit: Number(shelfFloor.shelf_floor_limit),
+  }))
+}
+
 export function ShelfPage() {
   const [editingShelf, setEditingShelf] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [initialShelfFloors, setInitialShelfFloors] = useState(EMPTY_SHELF_FLOORS)
   const [selectedShelfForFloor, setSelectedShelfForFloor] = useState(null)
   const [isShelfFloorModalOpen, setIsShelfFloorModalOpen] = useState(false)
   const {
@@ -18,6 +29,8 @@ export function ShelfPage() {
     clearSuccessMessage,
     editShelf,
     error,
+    fetchShelf,
+    isFetchingShelf,
     isLoading,
     isMutating,
     removeShelf,
@@ -26,15 +39,20 @@ export function ShelfPage() {
     successMessage,
   } = useShelves()
   const {
-    addShelfFloors,
     clearError: clearShelfFloorError,
     clearSuccessMessage: clearShelfFloorSuccessMessage,
     error: shelfFloorError,
+    isLoading: isShelfFloorLoading,
     isMutating: isShelfFloorMutating,
+    loadShelfFloors,
+    saveShelfFloors,
     successMessage: shelfFloorSuccessMessage,
   } = useShelfFloorCreator()
   const isPageMutating = isMutating || isShelfFloorMutating
-  const isShelfTableBusy = isPageMutating || isShelfFloorModalOpen
+  const isShelfTableBusy = isPageMutating
+    || isFetchingShelf
+    || isShelfFloorLoading
+    || isShelfFloorModalOpen
 
   function openCreateModal() {
     clearError()
@@ -43,10 +61,14 @@ export function ShelfPage() {
     setIsModalOpen(true)
   }
 
-  function openEditModal(shelf) {
+  async function openEditModal(shelf) {
     clearError()
     clearSuccessMessage()
-    setEditingShelf(shelf)
+    const latestShelf = await fetchShelf(shelf.shelf_id)
+
+    if (!latestShelf) return
+
+    setEditingShelf(latestShelf)
     setIsModalOpen(true)
   }
 
@@ -57,11 +79,17 @@ export function ShelfPage() {
     setEditingShelf(null)
   }
 
-  function openCreateShelfFloorModal(shelf) {
+  async function openCreateShelfFloorModal(shelf) {
     clearError()
     clearSuccessMessage()
     clearShelfFloorError()
     clearShelfFloorSuccessMessage()
+
+    const shelfFloors = await loadShelfFloors(shelf.shelf_id)
+
+    if (!shelfFloors) return
+
+    setInitialShelfFloors(toFormFloors(shelfFloors))
     setSelectedShelfForFloor(shelf)
     setIsShelfFloorModalOpen(true)
   }
@@ -70,6 +98,7 @@ export function ShelfPage() {
     if (isPageMutating) return
 
     setIsShelfFloorModalOpen(false)
+    setInitialShelfFloors(EMPTY_SHELF_FLOORS)
     setSelectedShelfForFloor(null)
   }
 
@@ -94,7 +123,7 @@ export function ShelfPage() {
   async function handleShelfFloorSubmit(floors) {
     if (!selectedShelfForFloor) return null
 
-    const updatedShelf = await addShelfFloors(selectedShelfForFloor, floors)
+    const updatedShelf = await saveShelfFloors(selectedShelfForFloor, floors)
 
     if (updatedShelf) {
       replaceShelf(updatedShelf)
@@ -143,7 +172,7 @@ export function ShelfPage() {
         title="ชั้นวางหนังสือ"
       >
         <ShelfList
-          isLoading={isLoading}
+          isLoading={isLoading || isFetchingShelf || isShelfFloorLoading}
           isMutating={isShelfTableBusy}
           onAddFloor={openCreateShelfFloorModal}
           onDelete={removeShelf}
@@ -161,6 +190,7 @@ export function ShelfPage() {
       />
 
       <ShelfFloorModal
+        initialFloors={initialShelfFloors}
         isOpen={isShelfFloorModalOpen}
         isSubmitting={isPageMutating}
         onCancel={closeShelfFloorModal}

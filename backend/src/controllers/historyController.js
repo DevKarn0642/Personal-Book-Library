@@ -15,6 +15,7 @@ function createHistoryController({ historyService }) {
     try {
       const { page, pageSize, offset } = req.pagination;
       const { histories, total } = await historyService.listHistories(req.auth.userId, {
+        bookId: req.historyFilter.bookId,
         limit: pageSize,
         offset,
       });

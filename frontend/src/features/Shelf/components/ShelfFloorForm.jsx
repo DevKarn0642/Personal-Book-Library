@@ -1,7 +1,9 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Form, InputNumber, Space, Table } from 'antd'
+import { Button, Form, Input, InputNumber, Space, Table } from 'antd'
+import { useEffect } from 'react'
 
 const MAX_INTEGER = 2147483647
+const EMPTY_FLOORS = []
 
 function parseIntegerInput(value) {
   return value?.replace(/[^\d]/g, '') || ''
@@ -16,17 +18,34 @@ function preventNonNumericKey(event) {
   }
 }
 
-export function ShelfFloorForm({ isSubmitting, onCancel, onSubmit }) {
+function getNextFloorNumber(floors) {
+  const largestFloorNumber = floors.reduce(
+    (largest, floor) => Math.max(largest, Number(floor?.shelfFloor) || 0),
+    0,
+  )
+  return largestFloorNumber + 1
+}
+
+export function ShelfFloorForm({ initialFloors = EMPTY_FLOORS, isSubmitting, onCancel, onSubmit }) {
   const [form] = Form.useForm()
   const floors = Form.useWatch('floors', form) || []
   const totalCapacity = floors.reduce(
     (total, shelfFloor) => total + Number(shelfFloor?.shelfFloorLimit || 0),
     0,
   )
+  const nextFloorNumber = getNextFloorNumber(floors)
 
-  async function handleFinish({ floors }) {
+  useEffect(() => {
+    form.setFieldsValue({
+      floors: initialFloors.length > 0
+        ? initialFloors
+        : [{ shelfFloorId: null, shelfFloor: 1, shelfFloorLimit: null }],
+    })
+  }, [form, initialFloors])
+
+  async function handleFinish({ floors: submittedFloors }) {
     const floorNumbers = new Set()
-    const duplicateIndex = floors.findIndex(({ shelfFloor }) => {
+    const duplicateIndex = submittedFloors.findIndex(({ shelfFloor }) => {
       if (floorNumbers.has(shelfFloor)) return true
 
       floorNumbers.add(shelfFloor)
@@ -41,7 +60,7 @@ export function ShelfFloorForm({ isSubmitting, onCancel, onSubmit }) {
       return
     }
 
-    const savedShelf = await onSubmit(floors)
+    const savedShelf = await onSubmit(submittedFloors)
     if (savedShelf) {
       form.resetFields()
     }
@@ -54,7 +73,7 @@ export function ShelfFloorForm({ isSubmitting, onCancel, onSubmit }) {
 
   return (
     <Form form={form} layout="vertical" onFinish={handleFinish}>
-      <Form.List initialValue={[{ shelfFloor: 1, shelfFloorLimit: null }]} name="floors">
+      <Form.List name="floors">
         {(fields, { add, remove }) => {
           const columns = [
             {
@@ -62,29 +81,34 @@ export function ShelfFloorForm({ isSubmitting, onCancel, onSubmit }) {
               title: 'ชั้นที่',
               width: '35%',
               render: (_, field) => (
-                <Form.Item
-                  name={[field.name, 'shelfFloor']}
-                  rules={[
-                    { required: true, message: 'กรุณากรอกหมายเลขชั้น' },
-                    {
-                      type: 'number',
-                      min: 1,
-                      max: MAX_INTEGER,
-                      message: 'ต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 2,147,483,647',
-                    },
-                  ]}
-                  style={{ marginBottom: 0 }}
-                >
-                  <InputNumber
-                    disabled={isSubmitting}
-                    max={MAX_INTEGER}
-                    min={1}
-                    onKeyDown={preventNonNumericKey}
-                    parser={parseIntegerInput}
-                    precision={0}
-                    style={{ width: '100%' }}
-                  />
-                </Form.Item>
+                <>
+                  <Form.Item hidden name={[field.name, 'shelfFloorId']}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    name={[field.name, 'shelfFloor']}
+                    rules={[
+                      { required: true, message: 'กรุณากรอกหมายเลขชั้น' },
+                      {
+                        type: 'number',
+                        min: 1,
+                        max: MAX_INTEGER,
+                        message: 'ต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง 2,147,483,647',
+                      },
+                    ]}
+                    style={{ marginBottom: 0 }}
+                  >
+                    <InputNumber
+                      disabled={isSubmitting}
+                      max={MAX_INTEGER}
+                      min={1}
+                      onKeyDown={preventNonNumericKey}
+                      parser={parseIntegerInput}
+                      precision={0}
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
+                </>
               ),
             },
             {
@@ -144,9 +168,13 @@ export function ShelfFloorForm({ isSubmitting, onCancel, onSubmit }) {
                   </strong>
                   <Button
                     block
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || nextFloorNumber > MAX_INTEGER}
                     icon={<PlusOutlined />}
-                    onClick={() => add({ shelfFloor: fields.length + 1, shelfFloorLimit: null })}
+                    onClick={() => add({
+                      shelfFloorId: null,
+                      shelfFloor: nextFloorNumber,
+                      shelfFloorLimit: null,
+                    })}
                   >
                     เพิ่มชั้นย่อย
                   </Button>
@@ -163,7 +191,7 @@ export function ShelfFloorForm({ isSubmitting, onCancel, onSubmit }) {
 
       <Space style={{ marginTop: 24 }}>
         <Button htmlType="submit" loading={isSubmitting} type="primary">
-          บันทึกชั้นย่อย
+          บันทึกการเปลี่ยนแปลง
         </Button>
 
         <Button disabled={isSubmitting} onClick={handleCancel}>

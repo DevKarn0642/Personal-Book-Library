@@ -1,7 +1,7 @@
 import { Modal } from 'antd'
 import { ShelfFloorForm } from './ShelfFloorForm.jsx'
 
-export function ShelfFloorModal({ isOpen, isSubmitting, onCancel, onSubmit, shelfName }) {
+export function ShelfFloorModal({ initialFloors, isOpen, isSubmitting, onCancel, onSubmit, shelfName }) {
   return (
     <Modal
       destroyOnHidden
@@ -9,9 +9,10 @@ export function ShelfFloorModal({ isOpen, isSubmitting, onCancel, onSubmit, shel
       maskClosable={!isSubmitting}
       onCancel={onCancel}
       open={isOpen}
-      title={`เพิ่มชั้นย่อยใน ${shelfName}`}
+      title={`จัดการชั้นย่อยใน ${shelfName}`}
     >
       <ShelfFloorForm
+        initialFloors={initialFloors}
         isSubmitting={isSubmitting}
         onCancel={onCancel}
         onSubmit={onSubmit}

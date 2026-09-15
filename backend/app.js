@@ -37,6 +37,11 @@ const { createBookFileUpload } = require('./src/middlewares/uploadBookFile');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 const { createRequireAuthentication } = require('./src/middlewares/requireAuthentication');
 
+function allowCrossOriginResource(req, res, next) {
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  return next();
+}
+
 function createApp({ pool, jwtSecret, bookCoverUploadDirectory, bookUploadDirectory }) {
   const userModel = createUserModel({ pool });
   const authService = createAuthService({ userModel, jwtSecret });
@@ -72,8 +77,18 @@ function createApp({ pool, jwtSecret, bookCoverUploadDirectory, bookUploadDirect
     origin: process.env.FRONTEND_ORIGIN || ['http://localhost:5173', 'http://localhost:8080'],
   }));
   app.use(express.json({ limit: '16kb' }));
-  app.use('/uploads/books', requireAuthentication, express.static(bookFileUpload.bookUploadDirectory));
-  app.use('/uploads/covers', requireAuthentication, express.static(bookFileUpload.bookCoverUploadDirectory));
+  app.use(
+    '/uploads/books',
+    requireAuthentication,
+    allowCrossOriginResource,
+    express.static(bookFileUpload.bookUploadDirectory),
+  );
+  app.use(
+    '/uploads/covers',
+    requireAuthentication,
+    allowCrossOriginResource,
+    express.static(bookFileUpload.bookCoverUploadDirectory),
+  );
   app.use('/api/auth', createAuthRouter({ authController, requireAuthentication }));
   app.use('/api/categories', createCategoryRouter({ categoryController, requireAuthentication }));
   app.use('/api/authors', createAuthorRouter({ authorController, requireAuthentication }));

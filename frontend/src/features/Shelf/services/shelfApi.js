@@ -26,6 +26,13 @@ export async function listShelves() {
   return body.shelves
 }
 
+export async function getShelf(shelfId) {
+  const response = await apiRequest(`/api/shelves/${shelfId}`)
+  const body = await readResponse(response, 'ไม่สามารถโหลดข้อมูลชั้นวางได้')
+
+  return body.shelf
+}
+
 export async function createShelf(shelfName, shelfLimit, shelfColor, shelfMaterial) {
   const response = await apiRequest('/api/shelves', {
     method: 'POST',

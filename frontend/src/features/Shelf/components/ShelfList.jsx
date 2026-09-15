@@ -52,7 +52,7 @@ export function ShelfList({
       render: (_, shelf) => (
         <Space align="center">
           <Button disabled={isMutating} onClick={() => onAddFloor(shelf)} type="primary">
-            เพิ่มชั้นย่อย
+            จัดการชั้นย่อย
           </Button>
 
           <Button disabled={isMutating} onClick={() => onEdit(shelf)}>
