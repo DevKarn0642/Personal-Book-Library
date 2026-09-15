@@ -57,7 +57,6 @@ export function BookArrangementPage() {
           onPageChange={(page, pageSize) => loadBooks({ page, pageSize })}
           onSelectBook={setSelectedBook}
           pagination={pagination}
-          selectedBookId={selectedBook?.book_id}
         />
       </Card>
 

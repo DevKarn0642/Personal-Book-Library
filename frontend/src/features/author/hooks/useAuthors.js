@@ -15,6 +15,7 @@ export function useAuthors() {
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isMutating, setIsMutating] = useState(false)
+  const [successMessage, setSuccessMessage] = useState(null)
 
   const loadAuthors = useCallback(async () => {
     try {
@@ -34,10 +35,12 @@ export function useAuthors() {
   async function addAuthor(authorName, authorPenName) {
     setIsMutating(true)
     setError(null)
+    setSuccessMessage(null)
 
     try {
       const author = await createAuthor(authorName, authorPenName)
       setAuthors((currentAuthors) => [...currentAuthors, author])
+      setSuccessMessage('เพิ่มผู้เขียนแล้ว')
       return author
     } catch (requestError) {
       setError(getErrorMessage(requestError))
@@ -50,6 +53,7 @@ export function useAuthors() {
   async function editAuthor(authorId, authorName, authorPenName) {
     setIsMutating(true)
     setError(null)
+    setSuccessMessage(null)
 
     try {
       const updatedAuthor = await updateAuthor(authorId, authorName, authorPenName)
@@ -60,6 +64,7 @@ export function useAuthors() {
             : author,
         ),
       )
+      setSuccessMessage('บันทึกการแก้ไขผู้เขียนแล้ว')
       return updatedAuthor
     } catch (requestError) {
       setError(getErrorMessage(requestError))
@@ -72,6 +77,7 @@ export function useAuthors() {
   async function removeAuthor(authorId) {
     setIsMutating(true)
     setError(null)
+    setSuccessMessage(null)
 
     try {
       const success = await deleteAuthor(authorId)
@@ -80,6 +86,7 @@ export function useAuthors() {
         setAuthors((currentAuthors) =>
           currentAuthors.filter((author) => String(author.author_id) !== String(authorId)),
         )
+        setSuccessMessage('ลบผู้เขียนแล้ว')
       }
 
       return success
@@ -95,14 +102,20 @@ export function useAuthors() {
     setError(null)
   }
 
+  function clearSuccessMessage() {
+    setSuccessMessage(null)
+  }
+
   return {
     addAuthor,
     authors,
     clearError,
+    clearSuccessMessage,
     editAuthor,
     error,
     isLoading,
     isMutating,
     removeAuthor,
+    successMessage,
   }
 }

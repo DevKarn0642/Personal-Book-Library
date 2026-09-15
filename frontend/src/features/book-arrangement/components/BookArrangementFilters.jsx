@@ -17,11 +17,6 @@ function authorLabel(author) {
 export function BookArrangementFilters({ authors, categories, filters, isLoading, onApply }) {
   const [form] = Form.useForm()
 
-  function handleReset() {
-    form.setFieldsValue(initialValues)
-    onApply(initialValues)
-  }
-
   return (
     <Form
       form={form}
@@ -85,7 +80,6 @@ export function BookArrangementFilters({ authors, categories, filters, isLoading
         <Form.Item>
           <Space>
             <Button disabled={isLoading} htmlType="submit" type="primary">ค้นหา</Button>
-            <Button disabled={isLoading} onClick={handleReset}>ล้างตัวกรอง</Button>
           </Space>
         </Form.Item>
       </Space>

@@ -13,23 +13,32 @@ export function AuthorPage() {
     addAuthor,
     authors,
     clearError,
+    clearSuccessMessage,
     editAuthor,
     error,
     isLoading,
     isMutating,
     removeAuthor,
+    successMessage,
   } = useAuthors()
 
-  useFeedbackMessage({ error, onErrorShown: clearError })
+  useFeedbackMessage({
+    error,
+    onErrorShown: clearError,
+    onSuccessShown: clearSuccessMessage,
+    successMessage,
+  })
 
   function openCreateModal() {
     clearError()
+    clearSuccessMessage()
     setEditingAuthor(null)
     setIsModalOpen(true)
   }
 
   function openEditModal(author) {
     clearError()
+    clearSuccessMessage()
     setEditingAuthor(author)
     setIsModalOpen(true)
   }

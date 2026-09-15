@@ -1,4 +1,4 @@
-import { Table, Tag } from 'antd'
+import { Button, Table, Tag, Typography } from 'antd'
 
 function renderBookType(bookType) {
   return bookType === 'file'
@@ -27,13 +27,28 @@ function renderShelfStatus(_, book) {
   )
 }
 
+function renderArrangementAction(_, book, onSelectBook) {
+  if (book.book_type !== 'physical') {
+    return <Typography.Text type="secondary">หนังสือไฟล์</Typography.Text>
+  }
+
+  if (book.shelf_floor_book_id) {
+    return <Typography.Text type="secondary">จัดวางแล้ว</Typography.Text>
+  }
+
+  return (
+    <Button onClick={() => onSelectBook(book)} size="small" type="primary">
+      เลือกชั้นวาง
+    </Button>
+  )
+}
+
 export function BookArrangementList({
   books,
   isLoading,
   onPageChange,
   onSelectBook,
   pagination,
-  selectedBookId,
 }) {
   const columns = [
     {
@@ -80,6 +95,12 @@ export function BookArrangementList({
       width: 200,
       render: renderShelfStatus,
     },
+    {
+      key: 'arrangement_action',
+      title: 'จัดวาง',
+      width: 150,
+      render: (_, book) => renderArrangementAction(_, book, onSelectBook),
+    },
   ]
 
   return (
@@ -96,16 +117,8 @@ export function BookArrangementList({
         showTotal: (total) => `ทั้งหมด ${total} รายการ`,
         total: pagination.total,
       }}
-      rowSelection={{
-        getCheckboxProps: (book) => ({
-          disabled: book.book_type !== 'physical' || Boolean(book.shelf_floor_book_id),
-        }),
-        onChange: (_, selectedRows) => onSelectBook(selectedRows[0] || null),
-        selectedRowKeys: selectedBookId ? [selectedBookId] : [],
-        type: 'radio',
-      }}
       rowKey="book_id"
-      scroll={{ x: 1080 }}
+      scroll={{ x: 1230 }}
     />
   )
 }

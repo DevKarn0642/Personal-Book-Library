@@ -13,23 +13,32 @@ export function CategoryPage() {
     addCategory,
     categories,
     clearError,
+    clearSuccessMessage,
     editCategory,
     error,
     isLoading,
     isMutating,
     removeCategory,
+    successMessage,
   } = useCategories()
 
-  useFeedbackMessage({ error, onErrorShown: clearError })
+  useFeedbackMessage({
+    error,
+    onErrorShown: clearError,
+    onSuccessShown: clearSuccessMessage,
+    successMessage,
+  })
 
   function openCreateModal() {
     clearError()
+    clearSuccessMessage()
     setEditingCategory(null)
     setIsModalOpen(true)
   }
 
   function openEditModal(category) {
     clearError()
+    clearSuccessMessage()
     setEditingCategory(category)
     setIsModalOpen(true)
   }
