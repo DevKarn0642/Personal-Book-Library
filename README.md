@@ -1,6 +1,7 @@
 # Personal Book Library
 
 ## รันด้วย Docker Compose
+- นำ .env ไว้ที่ Root Directory ของโปรเจกต์ ระดับเดียวกับ docker-compose.yml
 - docker compose up -d --build
 
 - Frontend: http://localhost:8080
