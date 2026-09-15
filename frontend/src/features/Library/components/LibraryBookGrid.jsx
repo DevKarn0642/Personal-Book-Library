@@ -11,7 +11,7 @@ export function LibraryBookGrid({ authors, books, categories, onSelectBook }) {
       dataSource={books}
       grid={{ gutter: 20, lg: 4, md: 3, sm: 2, xs: 1 }}
       renderItem={(book) => (
-        <List.Item>
+        <List.Item className="library-book-grid__item">
           <LibraryBookCard
             authorsById={authorsById}
             book={book}

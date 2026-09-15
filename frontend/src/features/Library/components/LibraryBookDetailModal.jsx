@@ -7,6 +7,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { Alert, Descriptions, Image, Modal, Space, Spin, Tag, Typography } from 'antd'
+import dayjs from 'dayjs'
 import { API_BASE_URL } from '../../../services/api.js'
 
 function getFileUrl(filePath) {
@@ -30,6 +31,11 @@ function getShelfLocations(book) {
   } catch {
     return []
   }
+}
+
+function formatPublicationDate(bookDate) {
+  const date = dayjs(bookDate)
+  return date.isValid() ? date.format('DD/MM/YYYY') : bookDate
 }
 
 export function LibraryBookDetailModal({
@@ -84,7 +90,7 @@ export function LibraryBookDetailModal({
                 </Descriptions.Item>
                 {book.book_date && (
                   <Descriptions.Item label={<><CalendarOutlined /> วันที่เผยแพร่</>}>
-                    {book.book_date}
+                    {formatPublicationDate(book.book_date)}
                   </Descriptions.Item>
                 )}
                 {book.book_totalpage !== null && book.book_totalpage !== undefined && (

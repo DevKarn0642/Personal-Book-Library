@@ -29,6 +29,10 @@ const { createBookRouter } = require('./src/routes/book');
 const { createBookController } = require('./src/controllers/bookController');
 const { createBookService } = require('./src/services/bookService');
 const { createBookModel } = require('./src/models/BookModel');
+const { createHistoryRouter } = require('./src/routes/history');
+const { createHistoryController } = require('./src/controllers/historyController');
+const { createHistoryService } = require('./src/services/historyService');
+const { createHistoryModel } = require('./src/models/HistoryModel');
 const { createBookFileUpload } = require('./src/middlewares/uploadBookFile');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 const { createRequireAuthentication } = require('./src/middlewares/requireAuthentication');
@@ -55,6 +59,9 @@ function createApp({ pool, jwtSecret, bookCoverUploadDirectory, bookUploadDirect
   const bookModel = createBookModel({ pool });
   const bookService = createBookService({ bookModel });
   const bookController = createBookController({ bookService });
+  const historyModel = createHistoryModel({ pool });
+  const historyService = createHistoryService({ bookModel, historyModel });
+  const historyController = createHistoryController({ historyService });
   const bookFileUpload = createBookFileUpload({ bookCoverUploadDirectory, bookUploadDirectory });
   const requireAuthentication = createRequireAuthentication({ jwtSecret });
 
@@ -71,6 +78,7 @@ function createApp({ pool, jwtSecret, bookCoverUploadDirectory, bookUploadDirect
   app.use('/api/categories', createCategoryRouter({ categoryController, requireAuthentication }));
   app.use('/api/authors', createAuthorRouter({ authorController, requireAuthentication }));
   app.use('/api/books', createBookRouter({ bookController, bookFileUpload, requireAuthentication }));
+  app.use('/api/histories', createHistoryRouter({ historyController, requireAuthentication }));
   app.use('/api/shelves', createShelfRouter({ shelfController, requireAuthentication }));
   app.use('/api/shelves/:shelfId/floors', createShelfFloorRouter({ shelfFloorController, requireAuthentication }));
   app.use('/api/alerts', createAlertRouter({ alertController, requireAuthentication }));

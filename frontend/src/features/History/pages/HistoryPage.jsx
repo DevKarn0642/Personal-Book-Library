@@ -1,3 +1,105 @@
+import { PlusOutlined } from '@ant-design/icons'
+import { Alert, Button, Card, Space } from 'antd'
+import { useState } from 'react'
+import { HistoryList } from '../components/HistoryList.jsx'
+import { HistoryModal } from '../components/HistoryModal.jsx'
+import { useHistories } from '../hooks/useHistories.js'
+
 export function HistoryPage() {
-  return null
+  const [editingHistory, setEditingHistory] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const {
+    addHistory,
+    bookOptions,
+    clearError,
+    clearSuccessMessage,
+    editHistory,
+    error,
+    histories,
+    isBookOptionsLoading,
+    isLoading,
+    isMutating,
+    loadHistories,
+    pagination,
+    removeHistory,
+    successMessage,
+  } = useHistories()
+
+  function openCreateModal() {
+    clearError()
+    clearSuccessMessage()
+    setEditingHistory(null)
+    setIsModalOpen(true)
+  }
+
+  function openEditModal(history) {
+    clearError()
+    clearSuccessMessage()
+    setEditingHistory(history)
+    setIsModalOpen(true)
+  }
+
+  function closeModal() {
+    if (isMutating) return
+
+    setIsModalOpen(false)
+    setEditingHistory(null)
+  }
+
+  async function handleSubmit(historyInput) {
+    const history = editingHistory
+      ? await editHistory(editingHistory.history_id, historyInput)
+      : await addHistory(historyInput)
+
+    if (history) closeModal()
+    return history
+  }
+
+  return (
+    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      {error && (
+        <Alert closable message={error} onClose={clearError} showIcon type="error" />
+      )}
+
+      {successMessage && (
+        <Alert
+          closable
+          message={successMessage}
+          onClose={clearSuccessMessage}
+          showIcon
+          type="success"
+        />
+      )}
+
+      <Card
+        extra={(
+          <Button disabled={isLoading || isMutating} icon={<PlusOutlined />} onClick={openCreateModal} type="primary">
+            เพิ่มประวัติการอ่าน
+          </Button>
+        )}
+        title="ประวัติการอ่าน"
+      >
+        <HistoryList
+          bookOptions={bookOptions}
+          histories={histories}
+          isLoading={isLoading}
+          isMutating={isMutating}
+          onDelete={removeHistory}
+          onEdit={openEditModal}
+          onPageChange={(page, pageSize) => loadHistories({ page, pageSize })}
+          pagination={pagination}
+        />
+      </Card>
+
+      <HistoryModal
+        bookOptions={bookOptions}
+        history={editingHistory}
+        isBookOptionsLoading={isBookOptionsLoading}
+        isOpen={isModalOpen}
+        isSubmitting={isMutating}
+        onCancel={closeModal}
+        onSubmit={handleSubmit}
+      />
+    </Space>
+  )
 }

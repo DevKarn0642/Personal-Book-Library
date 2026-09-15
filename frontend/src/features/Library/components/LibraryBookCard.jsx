@@ -70,12 +70,14 @@ export function LibraryBookCard({ authorsById, book, categoriesById, onSelect })
           <TagsOutlined />
           <Typography.Text ellipsis>{categoryName}</Typography.Text>
         </Space>
-        {book.book_totalpage !== null && book.book_totalpage !== undefined && (
-          <Space className="library-book-card__detail" size={8}>
-            <FileTextOutlined />
-            <Typography.Text>{Number(book.book_totalpage).toLocaleString()} หน้า</Typography.Text>
-          </Space>
-        )}
+        <Space className="library-book-card__detail" size={8}>
+          <FileTextOutlined />
+          <Typography.Text>
+            {book.book_totalpage !== null && book.book_totalpage !== undefined
+              ? `${Number(book.book_totalpage).toLocaleString()} หน้า`
+              : 'ไม่ระบุจำนวนหน้า'}
+          </Typography.Text>
+        </Space>
       </Space>
     </Card>
   )
